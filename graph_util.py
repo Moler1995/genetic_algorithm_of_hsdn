@@ -188,12 +188,14 @@ def topological_sort(dag):
 
 if __name__ == '__main__':
     graph = [[0, 2, 9, max_val], [2, 0, 7, 3], [9, 7, 0, 4], [max_val, 3, 4, 0]]
-    # a, b = np.unravel_index(np.argmax(graph_arr), graph_arr.shape) 计算最大值坐标
-    shortest_path_list = [dijkstra_alg(graph, i) for i in range(4)]
-    print(shortest_path_list)
-    dag_list = [build_dag(graph, i, shortest_path_list) for i in range(4)]
-    dag, sorted_nodes = add_links(graph, dag_list[3], 3, [2, 1])
-    print(dag, sorted_nodes)
+    graph_arr = np.array(graph)
+    a, b = np.unravel_index(np.argmax(graph_arr), graph_arr.shape) # 计算最大值坐标
+    print(a, b)
+    # shortest_path_list = [dijkstra_alg(graph, i) for i in range(4)]
+    # print(shortest_path_list)
+    # dag_list = [build_dag(graph, i, shortest_path_list) for i in range(4)]
+    # dag, sorted_nodes = add_links(graph, dag_list[3], 3, [2, 1])
+    # print(dag, sorted_nodes)
 
 
 

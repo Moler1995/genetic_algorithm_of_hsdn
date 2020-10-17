@@ -53,7 +53,6 @@ class NearOptimalSplitRatioProblem(ea.Problem):
                 self.sdn_node_link_count[sdn_index] = self.node_count - 1 - max_weight_count
                 self.sdn_node_ratio_start_index[sdn_index] = prev
                 prev += self.sdn_node_link_count[sdn_index]
-        print(self.sdn_node_link_count)
         # 目标
         M = 2
         maxormins = [1, 1]
@@ -75,7 +74,6 @@ class NearOptimalSplitRatioProblem(ea.Problem):
         """
         ratio_matrix_pop = pop.Phen
         # 每个个体横向取值仿真打流获取该个体的目标函数的参数
-        print(ratio_matrix_pop)
         obj_val = []
         for ratio_matrix in ratio_matrix_pop:
             link_band_width_used = self.route_flow(ratio_matrix)
@@ -83,6 +81,7 @@ class NearOptimalSplitRatioProblem(ea.Problem):
             # 这个需要计算有流量经过的链路的剩余带宽方差
             remaining_bandwidth_variance = self.calc_variance(link_band_width_used)
             obj_val.append([value_of_utilization_formula, remaining_bandwidth_variance])
+        # print(obj_val)
         pop.ObjV = np.hstack([obj_val])
         # .s.t sum(flow_ratio(node_v)) = 1 可行性法则
         splitted_cv = []
@@ -103,13 +102,13 @@ class NearOptimalSplitRatioProblem(ea.Problem):
         for topo_node in self.topological_sorted_nodes:
             # 当前节点去往目标节点的初始流量需求，原始需求+上游流量需求
             flow_demand = flow_demand_to_target[topo_node] + sum(link_band_width_used[:, topo_node])
-            next_hops = [i for i in self.dag[topo_node] if 0 < i < max_val]
+            next_hops = [i for i in range(self.node_count) if 0 < self.dag[topo_node][i] < max_val]
             # 到达目标节点,结束
             if len(next_hops) == 0:
                 continue
             # 决策变量在个体染色体中的位置
             split_ratio_index = self.sdn_node_ratio_start_index[topo_node] \
-                if topo_node in self.sdn_nodes else 0
+                if topo_node in self.sdn_nodes and topo_node in self.sdn_node_ratio_start_index.keys() else 0
             for next_hop in next_hops:
                 if topo_node in self.sdn_nodes and len(next_hops) != 1:
                     # 当前节点为sdn节点，按照生成的个体获取分流比例
@@ -123,7 +122,6 @@ class NearOptimalSplitRatioProblem(ea.Problem):
 
     def calc_variance(self, link_band_width_used):
         """
-
         计算链路剩余带宽方差
         :param link_band_width_used: 对一个目标节点打流之后的链路带宽使用情况
         :return:
@@ -139,9 +137,11 @@ class NearOptimalSplitRatioProblem(ea.Problem):
         return variance_sum / self.direct_link_count
 
     def calc_utilization_formula(self, link_band_width_used):
-        utilization_matrix = link_band_width_used / self.band_width
+        filled_bandwidth = self.band_width.copy()
+        filled_bandwidth[filled_bandwidth == 0.0] = max_val
+        utilization_matrix = link_band_width_used / filled_bandwidth
         max_utilization = np.max(utilization_matrix)
-        max_x_index, max_y_index = np.unravel_index(np.argmax(max_utilization), max_utilization.shape)
+        max_x_index, max_y_index = np.unravel_index(np.argmax(utilization_matrix), utilization_matrix.shape)
         max_utilization_bandwidth_used = link_band_width_used[max_x_index][max_y_index]
         max_utilization_raw_bandwidth = self.band_width[max_x_index][max_y_index]
         if 0 <= max_utilization <= Fraction(1, 3):
