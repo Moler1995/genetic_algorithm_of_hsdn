@@ -76,6 +76,7 @@ class NearOptimalSplitRatioProblem(ea.Problem):
         # 每个个体横向取值仿真打流获取该个体的目标函数的参数
         obj_val = []
         for ratio_matrix in ratio_matrix_pop:
+            # todo: 这里可以考虑并行计算
             link_band_width_used = self.route_flow(ratio_matrix)
             value_of_utilization_formula = self.calc_utilization_formula(link_band_width_used)
             # 这个需要计算有流量经过的链路的剩余带宽方差

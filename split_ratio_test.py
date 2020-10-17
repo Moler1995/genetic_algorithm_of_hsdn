@@ -22,7 +22,15 @@ if __name__ == "__main__":
     NIND = 50
     Field = ea.crtfld(Encoding, problem.varTypes, problem.ranges, problem.borders)
     population = ea.Population(Encoding, Field, NIND)
-    myAlgorithm = ea.moea_NSGA2_templet(problem, population)
+    # myAlgorithm = ea.moea_NSGA2_templet(problem, population) # 没算出结果，再看看
+    # myAlgorithm = ea.moea_NSGA3_DE_templet(problem, population) # 有结果，再分析看看
+    # myAlgorithm = ea.moea_NSGA2_DE_templet(problem, population) # 有结果，再对比分析看看
+    # myAlgorithm = ea.moea_MOEAD_DE_templet(problem, population) # 结果比较诡异，需要分析，执行时间长
+    # myAlgorithm = ea.moea_awGA_templet(problem, population) # 结果比较诡异，需要分析
+    # myAlgorithm = ea.moea_MOEAD_archive_templet(problem, population) # 没结果
+    # myAlgorithm = ea.moea_MOEAD_templet(problem, population) # 没算出结果，再看看
+    # myAlgorithm = ea.moea_NSGA3_templet(problem, population) # 没算出结果，再看看
+    myAlgorithm = ea.moea_psy_awGA_templet(problem, population)
     myAlgorithm.MAXGEN = 500
     NDSet = myAlgorithm.run()
     NDSet.save()
