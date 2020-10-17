@@ -1,6 +1,7 @@
-import numpy as np
 from collections import deque
-import time
+
+import numpy as np
+
 max_val = float('inf')
 
 
@@ -186,7 +187,6 @@ def topological_sort(dag):
 
 
 if __name__ == '__main__':
-    from fractions import Fraction
     graph = [[0, 2, 9, max_val], [2, 0, 7, 3], [9, 7, 0, 4], [max_val, 3, 4, 0]]
     # a, b = np.unravel_index(np.argmax(graph_arr), graph_arr.shape) 计算最大值坐标
     shortest_path_list = [dijkstra_alg(graph, i) for i in range(4)]

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-import numpy as np
 import geatpy as ea
+import numpy as np
 
 """
 该案例展示了一个离散决策变量的最小化目标的双目标优化问题。

@@ -1,7 +1,7 @@
-
-from sdn_split_ratio import NearOptimalSplitRatioProblem
-import numpy as np
 from collections import deque
+
+import numpy as np
+from near_optimal_split_ratio import NearOptimalSplitRatioProblem
 import geatpy as ea
 
 max_val = float('inf')
@@ -18,12 +18,12 @@ if __name__ == "__main__":
     sdn_nodes = [1, 2]
     problem = NearOptimalSplitRatioProblem(dag=dag, topological_sorted_nodes=topological_sorted_nodes,
                                            traffic=traffic, sdn_nodes=sdn_nodes, band_width=bandwidth)
-    # Encoding = "RI"
-    # NIND = 50
-    # Field = ea.crtfld(Encoding, problem.varTypes, problem.ranges, problem.borders)
-    # population = ea.Population(Encoding, Field, NIND)
-    # myAlgorithm = ea.moea_NSGA2_templet(problem, population)
-    # myAlgorithm.MAXGEN = 200
-    # NDSet = myAlgorithm.run()
-    # NDSet.save()
+    Encoding = "RI"
+    NIND = 50
+    Field = ea.crtfld(Encoding, problem.varTypes, problem.ranges, problem.borders)
+    population = ea.Population(Encoding, Field, NIND)
+    myAlgorithm = ea.moea_NSGA2_templet(problem, population)
+    myAlgorithm.MAXGEN = 200
+    NDSet = myAlgorithm.run()
+    NDSet.save()
 

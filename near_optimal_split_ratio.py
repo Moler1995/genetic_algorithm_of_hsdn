@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 
-import numpy as np
-import geatpy as ea
 from fractions import Fraction
+
+import geatpy as ea
+import numpy as np
 
 max_val = float('inf')
 
@@ -25,16 +26,6 @@ class NearOptimalSplitRatioProblem(ea.Problem):
                             [0, 0, 0]]
         """
         name = 'SplittingRatio'
-        # 目标
-        M = 2
-        maxormins = [1, 1]
-        lb = [0] * Dim
-        ub = [1] * Dim
-        # 0:实数
-        varTypes = [0] * Dim
-        # 上下边界是否可以取到
-        lbin = [1] * Dim
-        ubin = [1] * Dim
         self.dag = dag
         self.topological_sorted_nodes = topological_sorted_nodes
         self.traffic = traffic
@@ -54,16 +45,26 @@ class NearOptimalSplitRatioProblem(ea.Problem):
             link_weight_count_dict = dict(zip(link_weight, link_count))
             max_weight_count = link_weight_count_dict[max_val] if max_val in link_weight_count_dict else 0
             sdn_node_link_count = self.node_count - 1 - max_weight_count
-            # 如果sdn只有一条出链路，无需分流，特殊处理，提高准确率
+            # 如果在去往目标节点的链路上的sdn只有一条出链路，无需分流，特殊处理，减小个体染色体复杂度
             if sdn_node_link_count == 1 or sdn_node_link_count == 0:
                 pass
             else:
-                self.sdn_node_link_count[sdn_index] = self.node_count - 1 - max_weight_count
                 # 每个链路节点再分流染色体的起始索引
+                self.sdn_node_link_count[sdn_index] = self.node_count - 1 - max_weight_count
                 self.sdn_node_ratio_start_index[sdn_index] = prev
                 prev += self.sdn_node_link_count[sdn_index]
         print(self.sdn_node_link_count)
+        # 目标
+        M = 2
+        maxormins = [1, 1]
         Dim = sum(self.sdn_node_link_count.values())
+        lb = [0] * Dim
+        ub = [1] * Dim
+        # 0:实数
+        varTypes = [0] * Dim
+        # 上下边界是否可以取到
+        lbin = [1] * Dim
+        ubin = [1] * Dim
         ea.Problem.__init__(self, name, M, maxormins, Dim, varTypes, lb, ub, lbin, ubin)
 
     def aimFunc(self, pop):
@@ -87,7 +88,8 @@ class NearOptimalSplitRatioProblem(ea.Problem):
         splitted_cv = []
         prev = 0
         for key in self.sdn_node_link_count.keys():
-            splitted_cv.append(abs(sum(ratio_matrix_pop[:, prev + i] for i in range(self.sdn_node_link_count[key])) - 1))
+            splitted_cv\
+                .append(abs(sum(ratio_matrix_pop[:, prev + i] for i in range(self.sdn_node_link_count[key])) - 1))
             prev += self.sdn_node_link_count[key]
         pop.CV = np.hstack([splitted_cv]).T
 
@@ -102,10 +104,14 @@ class NearOptimalSplitRatioProblem(ea.Problem):
             # 当前节点去往目标节点的初始流量需求，原始需求+上游流量需求
             flow_demand = flow_demand_to_target[topo_node] + sum(link_band_width_used[:, topo_node])
             next_hops = [i for i in self.dag[topo_node] if 0 < i < max_val]
+            # 到达目标节点,结束
+            if len(next_hops) == 0:
+                continue
             # 决策变量在个体染色体中的位置
-            split_ratio_index = self.sdn_node_ratio_start_index[topo_node] if topo_node in self.sdn_nodes else 0
+            split_ratio_index = self.sdn_node_ratio_start_index[topo_node] \
+                if topo_node in self.sdn_nodes else 0
             for next_hop in next_hops:
-                if topo_node in self.sdn_nodes:
+                if topo_node in self.sdn_nodes and len(next_hops) != 1:
                     # 当前节点为sdn节点，按照生成的个体获取分流比例
                     link_band_width_used[topo_node][next_hop] = flow_demand * ratio_matrix[split_ratio_index]
                     split_ratio_index += 1
@@ -117,6 +123,7 @@ class NearOptimalSplitRatioProblem(ea.Problem):
 
     def calc_variance(self, link_band_width_used):
         """
+
         计算链路剩余带宽方差
         :param link_band_width_used: 对一个目标节点打流之后的链路带宽使用情况
         :return:

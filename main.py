@@ -3,7 +3,6 @@
 # Press Shift+F10 to execute it or replace it with your code.
 # Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
 import geatpy as ea
-from hsdn_near_optimal_performance import SOHybridNetTEOptimizeProblem
 from first_ga_exe import MyProblem
 
 if __name__ == '__main__':
