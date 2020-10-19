@@ -11,7 +11,7 @@ max_val = float('inf')
 class NearOptimalSplitRatioProblem(ea.Problem):
     """
     目标与父问题一致但计算的是针对以有向无环图中某一个节点v为目标节点的所有的链路的目标值
-    F1=Φ(e)  -- l(e),               0<l(e)/c(e)<=1/3
+    F1=Φ(e)  -- l(e),        0<l(e)/c(e)<=1/3
        --3l(e)-2/3c(e),       1/3<l(e)/c(e)<=2/3
        --10l(e)-16/3c(e),     2/3<l(e)/c(e)<=9/10
        --70l(e)-178/3c(e),    9/10<l(e)/c(e)<=1
@@ -148,7 +148,6 @@ class NearOptimalSplitRatioProblem(ea.Problem):
         filled_bandwidth = self.band_width.copy()
         filled_bandwidth[filled_bandwidth == 0.0] = max_val
         utilization_matrix = link_band_width_used / filled_bandwidth
-        print(utilization_matrix)
         max_utilization = np.max(utilization_matrix)
         max_x_index, max_y_index = np.unravel_index(np.argmax(utilization_matrix), utilization_matrix.shape)
         max_utilization_bandwidth_used = link_band_width_used[max_x_index][max_y_index]
