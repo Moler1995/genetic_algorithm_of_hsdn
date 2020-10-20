@@ -103,6 +103,7 @@ def build_dag(graph, source_index, min_weight_matrix):
     dag = np.ones([node_count, node_count]) * max_val
     # 对角线置零，暂缓，为方便后面增加链路判断
     # dag[range(node_count), range(node_count)] = 0
+    # source_index一开始作为源节点，计算出链路的有向无环图，最后将矩阵转置一下变为入链路，到最后入参source_index实际为target_index
     for target_index in range(node_count):
         if source_index == target_index:
             continue
@@ -189,8 +190,10 @@ def topological_sort(dag):
 if __name__ == '__main__':
     graph = [[0, 2, 9, max_val], [2, 0, 7, 3], [9, 7, 0, 4], [max_val, 3, 4, 0]]
     graph_arr = np.array(graph)
-    a, b = np.unravel_index(np.argmax(graph_arr), graph_arr.shape) # 计算最大值坐标
-
+    # a, b = np.unravel_index(np.argmax(graph_arr), graph_arr.shape) # 计算最大值坐标
+    graph1 = np.array([[1, 2, 3, 4], [1, 2, 3, 4], [1, 2, 3, 4], [1, 2, 3, 4]])
+    graph1 = graph1 + graph_arr
+    print(graph1)
     # shortest_path_list = [dijkstra_alg(graph, i) for i in range(4)]
     # print(shortest_path_list)
     # dag_list = [build_dag(graph, i, shortest_path_list) for i in range(4)]

@@ -1,11 +1,58 @@
 # -*- coding: utf-8 -*-
-
-from fractions import Fraction
-
 import geatpy as ea
 import numpy as np
+import random
+import calculator
 
 max_val = float('inf')
+
+
+def execute(dag, topological_sorted_nodes, traffic, bandwidth, sdn_nodes):
+    problem = NearOptimalSplitRatioProblem(dag=dag, topological_sorted_nodes=topological_sorted_nodes,
+                                           traffic=traffic, sdn_nodes=sdn_nodes, band_width=bandwidth)
+    Encoding = "RI"
+    NIND = 100
+    Field = ea.crtfld(Encoding, problem.varTypes, problem.ranges, problem.borders)
+    population = ea.Population(Encoding, Field, NIND)
+    myAlgorithm = ea.moea_NSGA3_DE_templet(problem, population)
+    myAlgorithm.mutOper.F = 0.74
+    myAlgorithm.recOper.XOVR = 0.65
+    # 自定义初始种群,计算目标函数值和约束
+    initChrom = []
+    unit_ratio = 1 / NIND
+    chrom = []
+    for j in range(0, NIND):
+        start_index = 0
+        for sdn_node in sdn_nodes:
+            if sdn_node not in problem.sdn_node_link_count.keys():
+                continue
+            link_count = problem.sdn_node_link_count[sdn_node]
+            for index in range(link_count):
+                if index == link_count - 1:
+                    chrom.append(NIND - sum(chrom[start_index:start_index + index]))
+                    initChrom.append(chrom.copy())
+                    chrom.clear()
+                    start_index += link_count
+                else:
+                    chrom.append(random.randint(0, NIND - sum(chrom[start_index:start_index + index])))
+    if len(initChrom) == 0:
+        # 所有sdn节点都只有一条出口链路，直接根据ecmp规则仿真打流，并计算此时的链路利用情况
+        return problem.route_flow(None)
+    else:
+        prophetPop = ea.Population(Encoding, Field, NIND,
+                                   np.array(initChrom) * unit_ratio, Phen=np.array(initChrom) * unit_ratio)
+        problem.aimFunc(prophetPop)
+        myAlgorithm.MAXGEN = 100
+        myAlgorithm.drawing = 2
+        NDSet = myAlgorithm.run(prophetPop)
+        print('用时：%s 秒' % myAlgorithm.passTime)
+        print('非支配个体数：%s 个' % NDSet.sizes)
+        # 返回子问题多目标优化的近似最优解，难点：从进化算法得出的帕累托非支配解中选择最想要的点，(两个目标的权重选择策略)
+        # 看优化重心在最小的最大链路利用率还是最小剩余链路带宽方差
+        optimal_solution_weight = [0.4, 0.6]
+        NDSet.ObjV[:, 0] + NDSet.ObjV[:, 1]
+        near_optimal_bandwidth_used = []
+        return near_optimal_bandwidth_used
 
 
 class NearOptimalSplitRatioProblem(ea.Problem):
@@ -43,8 +90,6 @@ class NearOptimalSplitRatioProblem(ea.Problem):
         # 将每个sdn节点的分流数量计算存储为一个字典
         self.sdn_node_link_count = {}
         self.sdn_node_ratio_start_index = {}
-        # 直连链路数量
-        self.direct_link_count = np.count_nonzero(self.band_width)
         prev = 0
         for sdn_index in self.sdn_nodes:
             link_weight, link_count = np.unique(self.dag[sdn_index], return_counts=True)
@@ -80,14 +125,16 @@ class NearOptimalSplitRatioProblem(ea.Problem):
         :return:
         """
         ratio_matrix_pop = pop.Phen
+        # print(ratio_matrix_pop)
         # 每个个体横向取值仿真打流获取该个体的目标函数的参数
         obj_val = []
         for ratio_matrix in ratio_matrix_pop:
             # todo: 这里可以考虑并行计算
             link_band_width_used = self.route_flow(ratio_matrix)
-            value_of_utilization_formula = self.calc_utilization_formula(link_band_width_used)
+            value_of_utilization_formula = calculator.calc_utilization_formula(self.band_width, link_band_width_used)
             # 这个需要计算有流量经过的链路的剩余带宽方差
-            remaining_bandwidth_variance = self.calc_variance(link_band_width_used)
+            remaining_bandwidth_variance = calculator.calc_remaining_bandwidth_variance(self.band_width,
+                                                                                        link_band_width_used)
             obj_val.append([value_of_utilization_formula, remaining_bandwidth_variance])
         # print(obj_val)
         pop.ObjV = np.hstack([obj_val])
@@ -122,45 +169,8 @@ class NearOptimalSplitRatioProblem(ea.Problem):
                     link_band_width_used[topo_node][next_hop] = flow_demand * ratio_matrix[split_ratio_index]
                     split_ratio_index += 1
                 else:
-                    # 当前节点为普通节点，则按照ECMP规则流量等分
+                    # 当前节点为普通节点或是单条出链路的sdn节点，则按照ECMP规则流量等分
                     link_band_width_used[topo_node][next_hop] += flow_demand / len(next_hops)
         # 标量化带宽占用量,所有流量的带宽占用量都集中再矩阵的上半三角
         return np.triu(link_band_width_used) + np.tril(link_band_width_used).T
 
-    def calc_variance(self, link_band_width_used):
-        """
-        计算链路剩余带宽方差
-        :param link_band_width_used: 对一个目标节点打流之后的链路带宽使用情况
-        :return:
-        """
-        remaining_bandwidth = self.band_width - link_band_width_used
-        avg_remaining_bandwidth = np.sum(remaining_bandwidth) / self.direct_link_count
-        variance_sum = 0
-        for i in range(self.node_count):
-            for j in range(self.node_count):
-                # 判断一下两点之间是否有直接链接
-                if self.band_width[i][j] != 0:
-                    variance_sum += (remaining_bandwidth[i][j] - avg_remaining_bandwidth) ** 2
-        return variance_sum / self.direct_link_count
-
-    def calc_utilization_formula(self, link_band_width_used):
-        filled_bandwidth = self.band_width.copy()
-        filled_bandwidth[filled_bandwidth == 0.0] = max_val
-        utilization_matrix = link_band_width_used / filled_bandwidth
-        # print(utilization_matrix)
-        max_utilization = np.max(utilization_matrix)
-        max_x_index, max_y_index = np.unravel_index(np.argmax(utilization_matrix), utilization_matrix.shape)
-        max_utilization_bandwidth_used = link_band_width_used[max_x_index][max_y_index]
-        max_utilization_raw_bandwidth = self.band_width[max_x_index][max_y_index]
-        if 0 <= max_utilization <= Fraction(1, 3):
-            return max_utilization_bandwidth_used
-        elif Fraction(1, 3) < max_utilization <= Fraction(2, 3):
-            return 3 * max_utilization_bandwidth_used - Fraction(2, 3) * max_utilization_raw_bandwidth
-        elif Fraction(2, 3) < max_utilization <= Fraction(9, 10):
-            return 10 * max_utilization_bandwidth_used - Fraction(16, 3) * max_utilization_raw_bandwidth
-        elif Fraction(9, 10) < max_utilization <= 1:
-            return 70 * max_utilization_bandwidth_used - Fraction(178, 3) * max_utilization_raw_bandwidth
-        elif 1 < max_utilization <= Fraction(11, 10):
-            return 500 * max_utilization_bandwidth_used - Fraction(1468, 3) * max_utilization_raw_bandwidth
-        else:
-            return 5000 * max_utilization_bandwidth_used - Fraction(16318, 3) * max_utilization_raw_bandwidth

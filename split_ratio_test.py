@@ -4,9 +4,9 @@ import numpy as np
 from near_optimal_split_ratio import NearOptimalSplitRatioProblem
 import geatpy as ea
 import random
+import calculator
 
 max_val = float('inf')
-
 
 """
 测试
@@ -61,21 +61,24 @@ if __name__ == "__main__":
                     start_index += link_count
                 else:
                     chrom.append(random.randint(0, NIND - sum(chrom[start_index:start_index + index])))
-    prophetPop_Chrom = np.array(initChrom) * unit_ratio
     prophetPop = ea.Population(Encoding, Field, NIND,
                                np.array(initChrom) * unit_ratio, Phen=np.array(initChrom) * unit_ratio)
     problem.aimFunc(prophetPop)
-    # myAlgorithm.MAXGEN = 100
-    # myAlgorithm.drawing = 2
-    # NDSet = myAlgorithm.run(prophetPop)
-    # print('用时：%s 秒' % myAlgorithm.passTime)
-    # print('非支配个体数：%s 个' % NDSet.sizes)
-    for i in range(0, 20):
-        myAlgorithm.MAXGEN = 100
-        myAlgorithm.drawing = 2
-        NDSet = myAlgorithm.run(prophetPop)
-        print('用时：%s 秒' % myAlgorithm.passTime)
-        print('非支配个体数：%s 个' % NDSet.sizes)
+    # used = problem.route_flow([0.079, 0.315, 0.606])
+    # print(calculator.calc_remaining_bandwidth_variance(bandwidth, used))
+    # print(calculator.calc_utilization_formula(bandwidth, used))
+    myAlgorithm.MAXGEN = 100
+    myAlgorithm.drawing = 2
+    NDSet = myAlgorithm.run(prophetPop)
+    target_val = NDSet.ObjV[:, 0] * 0.4 + NDSet.ObjV[:, 1] * 0.6
+    min_index = np.argmin(target_val)
+    print(NDSet.ObjV[min_index], min_index, NDSet.Phen[min_index])
+    # for i in range(0, 20):
+    #     myAlgorithm.MAXGEN = 100
+    #     myAlgorithm.drawing = 2
+    #     NDSet = myAlgorithm.run(prophetPop)
+    #     print('用时：%s 秒' % myAlgorithm.passTime)
+    #     print('非支配个体数：%s 个' % NDSet.sizes)
 
 
 

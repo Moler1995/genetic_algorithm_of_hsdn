@@ -3,25 +3,18 @@
 # Press Shift+F10 to execute it or replace it with your code.
 # Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
 import geatpy as ea
-from first_ga_exe import MyProblem
+import numpy as np
+from hsdn_near_optimal_performance import SOHybridNetTEOptimizeProblem
+max_val = float('inf')
 
 if __name__ == '__main__':
-    """================================实例化问题对象==========================="""
-    problem = MyProblem()  # 生成问题对象
-    """==================================种群设置==============================="""
-    Encoding = 'BG'  # 编码方式
-    NIND = 50  # 种群规模
-    Field = ea.crtfld(Encoding, problem.varTypes, problem.ranges, problem.borders)  # 创建区域描述器
-    population = ea.Population(Encoding, Field, NIND)  # 实例化种群对象（此时种群还没被初始化，仅仅是完成种群对象的实例化）
-    """================================算法参数设置============================="""
-    myAlgorithm = ea.moea_NSGA2_templet(problem, population)  # 实例化一个算法模板对象
-    myAlgorithm.mutOper.Pm = 0.2  # 修改变异算子的变异概率
-    myAlgorithm.recOper.XOVR = 0.9  # 修改交叉算子的交叉概率
-    myAlgorithm.MAXGEN = 200  # 最大进化代数
-    """==========================调用算法模板进行种群进化========================"""
-    NDSet = myAlgorithm.run()  # 执行算法模板，得到帕累托最优解集NDSet
-    NDSet.save()  # 把结果保存到文件中
-    # 输出
-    print('用时：%s 秒' % (myAlgorithm.passTime))
-    print('非支配个体数：%s 个' % (NDSet.sizes))
-    print('单位时间找到帕累托前沿点个数：%s 个' % (int(NDSet.sizes // myAlgorithm.passTime)))
+    graph = np.array([[0, 1, 1, max_val], [1, 0, 1, 1], [1, 1, 0, 1], [max_val, 1, 1, 0]])
+    band_width = np.array([[0, 100, 100, 0], [0, 0, 100, 100], [0, 0, 0, 100], [0, 0, 0, 0]])
+    traffic = np.array([[0, 10, 15, 10], [10, 0, 9, 8], [10, 10, 0, 20], [10, 10, 10, 0]])
+    sdn_node_count = 1
+    problem = SOHybridNetTEOptimizeProblem(graph, sdn_node_count, traffic, band_width)
+    Encoding = ['P', 'RI']
+    Field1 = ea.crtfld(Encoding[0], problem.varTypes[:sdn_node_count],
+                       problem.ranges[:sdn_node_count], problem.borders[:sdn_node_count])  # 创建区域描述器
+    Field2 = ea.crtfld(Encoding[1], problem.varTypes[sdn_node_count:],
+                       problem.ranges[sdn_node_count:], problem.borders[sdn_node_count:])  # 创建区域描述器
