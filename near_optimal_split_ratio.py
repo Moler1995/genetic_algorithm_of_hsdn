@@ -40,7 +40,7 @@ class NearOptimalSplitRatioProblem(ea.Problem):
         self.node_count = len(dag)
         self.sdn_node_count = len(sdn_nodes)
         self.band_width = band_width
-        # 将每个sdn节点的分流数量计算存储为一个数组
+        # 将每个sdn节点的分流数量计算存储为一个字典
         self.sdn_node_link_count = {}
         self.sdn_node_ratio_start_index = {}
         # 直连链路数量

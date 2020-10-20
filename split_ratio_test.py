@@ -20,7 +20,7 @@ if __name__ == "__main__":
     problem = NearOptimalSplitRatioProblem(dag=dag, topological_sorted_nodes=topological_sorted_nodes,
                                            traffic=traffic, sdn_nodes=sdn_nodes, band_width=bandwidth)
     Encoding = "RI"
-    NIND = 200
+    NIND = 100
     Field = ea.crtfld(Encoding, problem.varTypes, problem.ranges, problem.borders)
     population = ea.Population(Encoding, Field, NIND)
     # myAlgorithm = ea.moea_NSGA2_templet(problem, population) # 没算出结果，再看看
@@ -41,26 +41,38 @@ if __name__ == "__main__":
     # myAlgorithm = ea.moea_MOEAD_archive_templet(problem, population) # 没结果
     # myAlgorithm = ea.moea_MOEAD_templet(problem, population) # 没算出结果，再看看
     # myAlgorithm = ea.moea_NSGA3_templet(problem, population) # 没算出结果，再看看
+
+    # 自定义初始种群,计算目标函数值和约束
     initChrom = []
     unit_ratio = 1 / NIND
     chrom = []
     for j in range(0, NIND):
-        index = j % 3
-        if index == 0:
-            chrom.append(random.randint(0, NIND))
-        if index == 1:
-            chrom.append(random.randint(0, NIND - chrom[index - 1]))
-        if index == 2:
-            chrom.append(random.randint(0, NIND - chrom[index - 2] - chrom[index - 1]))
-            initChrom.append(chrom.copy())
-            chrom.clear()
+        start_index = 0
+        link_count = 0
+        for sdn_node in sdn_nodes:
+            if sdn_node not in problem.sdn_node_link_count.keys():
+                continue
+            link_count = problem.sdn_node_link_count[sdn_node]
+            for index in range(link_count):
+                if index == link_count - 1:
+                    chrom.append(NIND - sum(chrom[start_index:start_index + index]))
+                    initChrom.append(chrom.copy())
+                    chrom.clear()
+                    start_index += link_count
+                else:
+                    chrom.append(random.randint(0, NIND - sum(chrom[start_index:start_index + index])))
     prophetPop_Chrom = np.array(initChrom) * unit_ratio
     prophetPop = ea.Population(Encoding, Field, NIND,
                                np.array(initChrom) * unit_ratio, Phen=np.array(initChrom) * unit_ratio)
     problem.aimFunc(prophetPop)
+    # myAlgorithm.MAXGEN = 100
+    # myAlgorithm.drawing = 2
+    # NDSet = myAlgorithm.run(prophetPop)
+    # print('用时：%s 秒' % myAlgorithm.passTime)
+    # print('非支配个体数：%s 个' % NDSet.sizes)
     for i in range(0, 20):
         myAlgorithm.MAXGEN = 100
-        myAlgorithm.drawing = 1
+        myAlgorithm.drawing = 2
         NDSet = myAlgorithm.run(prophetPop)
         print('用时：%s 秒' % myAlgorithm.passTime)
         print('非支配个体数：%s 个' % NDSet.sizes)
