@@ -3,6 +3,7 @@ from collections import deque
 import numpy as np
 from near_optimal_split_ratio import NearOptimalSplitRatioProblem
 import geatpy as ea
+import random
 
 max_val = float('inf')
 
@@ -14,7 +15,7 @@ if __name__ == "__main__":
     dag = np.array([[0, 2, max_val, max_val], [max_val, 0, max_val, 3], [1, 1, 0, 4], [max_val, max_val, max_val, 0]])
     topological_sorted_nodes = deque([2, 0, 1, 3])
     traffic = np.array([[0.0, 0.0, 0.0, 9.0], [0.0, 0.0, 0.0, 8.0], [0.0, 0.0, 0.0, 12.0], [0.0, 0.0, 0.0, 0.0]])
-    bandwidth = np.array([[0.0, 15.0, 20.0, 0.0], [0.0, 0.0, 20.0, 25.0], [0.0, 0.0, 0.0, 12.0], [0.0, 0.0, 0.0, 0.0]])
+    bandwidth = np.array([[0.0, 15.0, 20.0, 0.0], [0.0, 0.0, 20.0, 30.0], [0.0, 0.0, 0.0, 10.0], [0.0, 0.0, 0.0, 0.0]])
     sdn_nodes = [1, 2]
     problem = NearOptimalSplitRatioProblem(dag=dag, topological_sorted_nodes=topological_sorted_nodes,
                                            traffic=traffic, sdn_nodes=sdn_nodes, band_width=bandwidth)
@@ -40,10 +41,29 @@ if __name__ == "__main__":
     # myAlgorithm = ea.moea_MOEAD_archive_templet(problem, population) # 没结果
     # myAlgorithm = ea.moea_MOEAD_templet(problem, population) # 没算出结果，再看看
     # myAlgorithm = ea.moea_NSGA3_templet(problem, population) # 没算出结果，再看看
-    myAlgorithm.MAXGEN = 100
-    myAlgorithm.drawing = 2
-    NDSet = myAlgorithm.run()
-    print('用时：%s 秒' % myAlgorithm.passTime)
-    print('非支配个体数：%s 个' % NDSet.sizes)
-    NDSet.save()
+    initChrom = []
+    unit_ratio = 1 / NIND
+    chrom = []
+    for j in range(0, NIND):
+        index = j % 3
+        if index == 0:
+            chrom.append(random.randint(0, NIND))
+        if index == 1:
+            chrom.append(random.randint(0, NIND - chrom[index - 1]))
+        if index == 2:
+            chrom.append(random.randint(0, NIND - chrom[index - 2] - chrom[index - 1]))
+            initChrom.append(chrom.copy())
+            chrom.clear()
+    prophetPop_Chrom = np.array(initChrom) * unit_ratio
+    prophetPop = ea.Population(Encoding, Field, NIND,
+                               np.array(initChrom) * unit_ratio, Phen=np.array(initChrom) * unit_ratio)
+    problem.aimFunc(prophetPop)
+    for i in range(0, 20):
+        myAlgorithm.MAXGEN = 100
+        myAlgorithm.drawing = 1
+        NDSet = myAlgorithm.run(prophetPop)
+        print('用时：%s 秒' % myAlgorithm.passTime)
+        print('非支配个体数：%s 个' % NDSet.sizes)
+
+
 

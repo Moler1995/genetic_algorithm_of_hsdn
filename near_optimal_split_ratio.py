@@ -28,7 +28,7 @@ class NearOptimalSplitRatioProblem(ea.Problem):
         :param traffic: 流量需求,有向
         :param sdn_nodes: sdn节点列表
         :param band_width: 初始带宽，0代表本节点或节点间无直连链路，无向，用矩阵上半三角表示链路带宽
-                           [[0,100,0]
+                        e.g.[[0,100,0]
                             [0, 0, 400]
                             [0, 0, 0]]
         """
@@ -101,7 +101,6 @@ class NearOptimalSplitRatioProblem(ea.Problem):
         pop.CV = np.hstack([splitted_cv]).T
 
     def route_flow(self, ratio_matrix):
-        # 内遗传算法中根据有向无环图打流时流量还是有向的，到父遗传中再合并流量转成无向
         link_band_width_used = np.zeros([self.node_count, self.node_count])
         # 拓扑排序最后一个节点为目标节点
         flow_demand_to_target = self.traffic[:, self.topological_sorted_nodes[-1]]
@@ -125,7 +124,7 @@ class NearOptimalSplitRatioProblem(ea.Problem):
                 else:
                     # 当前节点为普通节点，则按照ECMP规则流量等分
                     link_band_width_used[topo_node][next_hop] += flow_demand / len(next_hops)
-        # 标量化,所有流量的带宽占用量都集中再矩阵的上半三角
+        # 标量化带宽占用量,所有流量的带宽占用量都集中再矩阵的上半三角
         return np.triu(link_band_width_used) + np.tril(link_band_width_used).T
 
     def calc_variance(self, link_band_width_used):
@@ -148,6 +147,7 @@ class NearOptimalSplitRatioProblem(ea.Problem):
         filled_bandwidth = self.band_width.copy()
         filled_bandwidth[filled_bandwidth == 0.0] = max_val
         utilization_matrix = link_band_width_used / filled_bandwidth
+        # print(utilization_matrix)
         max_utilization = np.max(utilization_matrix)
         max_x_index, max_y_index = np.unravel_index(np.argmax(utilization_matrix), utilization_matrix.shape)
         max_utilization_bandwidth_used = link_band_width_used[max_x_index][max_y_index]
