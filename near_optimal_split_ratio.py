@@ -37,25 +37,23 @@ def execute(dag, topological_sorted_nodes, traffic, bandwidth, sdn_nodes):
                     chrom.append(random.randint(0, NIND - sum(chrom[start_index:start_index + index])))
     if len(initChrom) == 0:
         # 所有sdn节点都只有一条出口链路，直接根据ecmp规则仿真打流，并计算此时的链路利用情况
-        print('场景：所有sdn节点都只有一条出链路，按照ecmp规则流量仿真')
+        print('场景1：所有sdn节点都只有一条出链路，按照ecmp规则流量仿真')
         return problem.route_flow(None)
     else:
-        print('场景：sdn节点最优分流比例进化算法开始....')
+        print('场景2：sdn节点最优分流比例进化算法开始....')
         prophetPop = ea.Population(Encoding, Field, NIND,
                                    np.array(initChrom) * unit_ratio, Phen=np.array(initChrom) * unit_ratio)
         problem.aimFunc(prophetPop)
-        myAlgorithm.MAXGEN = 100
+        myAlgorithm.MAXGEN = 80
         myAlgorithm.drawing = 0
         NDSet = myAlgorithm.run(prophetPop)
-        print('用时：%s 秒' % myAlgorithm.passTime)
-        print('非支配个体数：%s 个' % NDSet.sizes)
         # 返回子问题多目标优化的近似最优解，难点：从进化算法得出的帕累托非支配解中选择最想要的点，(两个目标的权重选择策略)
-        # 看优化重心在最小的最大链路利用率还是最小剩余链路带宽方差
+        # 看优化重心在最小的最大链路利用率，还是最小剩余链路带宽方差
         optimal_solution_weight = [0.4, 0.6]
         # 返回加权最小值对应的解
         weighted_NDSet = NDSet.ObjV[:, 0] * optimal_solution_weight[0] + NDSet.ObjV[:, 1] * optimal_solution_weight[1]
         near_optimal_bandwidth_used = problem.route_flow(NDSet.Phen[np.argmin(weighted_NDSet)])
-        print('加权近似最优解:', NDSet.Phen[np.argmin(weighted_NDSet)])
+        print('加权后近似最优解:', NDSet.Phen[np.argmin(weighted_NDSet)])
         return near_optimal_bandwidth_used
 
 
@@ -89,7 +87,6 @@ class NearOptimalSplitRatioProblem(ea.Problem):
         self.traffic = traffic
         self.sdn_nodes = sdn_nodes
         self.node_count = len(dag)
-        self.sdn_node_count = len(sdn_nodes)
         self.band_width = band_width
         # 将每个sdn节点的分流数量计算存储为一个字典
         self.sdn_node_link_count = {}
@@ -133,7 +130,6 @@ class NearOptimalSplitRatioProblem(ea.Problem):
         # 每个个体横向取值仿真打流获取该个体的目标函数的参数
         obj_val = []
         for ratio_matrix in ratio_matrix_pop:
-            # todo: 这里可以考虑并行计算
             link_band_width_used = self.route_flow(ratio_matrix)
             value_of_utilization_formula = calculator.calc_utilization_formula(self.band_width, link_band_width_used)
             # 这个需要计算有流量经过的链路的剩余带宽方差

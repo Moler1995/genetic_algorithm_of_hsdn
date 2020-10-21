@@ -18,7 +18,7 @@ if __name__ == "__main__":
                        problem.ranges[:, sdn_node_count:], problem.borders[:, sdn_node_count:])  # 创建区域描述器
     Fields = [Field1, Field2]
     # 种群规模
-    NIND = 100
+    NIND = 50
     population = ea.PsyPopulation(Encodings, Fields, NIND)
     myAlgorithm = ea.moea_psy_NSGA3_templet(problem, population)
     myAlgorithm.MAXGEN = 100

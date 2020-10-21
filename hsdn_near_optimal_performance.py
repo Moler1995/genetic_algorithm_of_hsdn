@@ -6,7 +6,7 @@ from collections import deque
 import near_optimal_split_ratio as nosr
 import calculator
 from concurrent.futures import ProcessPoolExecutor, as_completed
-import multiprocessing
+import time
 
 '''
 研究OSPF-SDN混合网络的ECMP权重优化，节点升级策略及SDN节点近似最优分流策略
@@ -55,7 +55,7 @@ class SOHybridNetTEOptimizeProblem(ea.Problem):
         varTypes = [1] * Dim
         # 决策变量下界,从2开始是因为，sdn节点优化的时候会将sdn节点增加的出链路的权重改为1，且初始链路连接矩阵中用1表示有连接
         lb = [0] * sdn_node_count + [2] * weight_size
-        # 决策变量上界,权重的搜索空间尽量低一点,降低计算复杂度
+        # 决策变量上界,权重的搜索空间尽量低一点,降低搜索复杂度
         ub = [node_size - 1] * sdn_node_count + [weight_size + 1] * weight_size
         # 决策变量上下边界是否能取到
         lbin = [1] * Dim
@@ -63,7 +63,6 @@ class SOHybridNetTEOptimizeProblem(ea.Problem):
         # 父类构造
         ea.Problem.__init__(self, name, M, maxormins, Dim, varTypes, lb, ub, lbin, ubin)
         # 链路信息参数
-        self.weight_size = weight_size
         self.sdn_node_count = sdn_node_count
         self.node_size = node_size
         self.graph = graph
@@ -86,9 +85,8 @@ class SOHybridNetTEOptimizeProblem(ea.Problem):
                 legacy_node_dag = gu.build_dag(filled_weight_list, i, shortest_path_list)
                 # 针对每一个顶点的有向无环图查找sdn节点，增加可用链路并验证环路
                 dag, sorted_nodes = gu.add_links(filled_weight_list, legacy_node_dag, i, sdn_nodes)
-                print('混合sdn网络中目标为%d的有向无环图:\n%s\n拓扑排序:\n%s' % (i, dag, sorted_nodes))
                 near_optimal_bandwidth_used = nosr.execute(dag, sorted_nodes, self.traffic, self.band_width, sdn_nodes)
-                print('sdn节点为%s, %d为目标的,各节点需求为\n%s\n，近似最优链路使用情况:\n' % (sdn_nodes, i, self.traffic[:, i]),
+                print('sdn节点为%s, %d为目标的, 近似最优链路使用情况:\n' % (sdn_nodes, i),
                       near_optimal_bandwidth_used)
                 total_bandwidth_used = near_optimal_bandwidth_used + total_bandwidth_used
             max_utilization_formula_val = calculator.calc_utilization_formula(self.band_width,
@@ -102,19 +100,23 @@ class SOHybridNetTEOptimizeProblem(ea.Problem):
         # 对种群中的每一个个体求目标值的近似最小值及解集
         pop_size = len(pop_values)
         obj_val_list = np.zeros([pop_size, self.M])
+        start_time = time.time()
         with ProcessPoolExecutor(max_workers=2) as executor:
             for index, result in zip(range(pop_size), executor.map(self.solve_one_pop, pop_values)):
                 obj_val_list[index] = result
-        pop.ObjV = np.hstack(obj_val_list)
+        print('计算一个种群总耗时:{}'.format(time.time() - start_time))
+        print(obj_val_list)
+        pop.ObjV = obj_val_list
 
     def solve_one_pop(self, one_pop):
         # 给连接图的上半三角填充权重
+        start_time = time.time()
         sdn_nodes = np.array(one_pop[:self.sdn_node_count]).astype(int)
         filled_weight_list = self.fill_graph_weights(one_pop[self.sdn_node_count:])
         total_bandwidth_used = np.zeros([self.node_size, self.node_size])
         # Dijkstra算法对每个顶点计算最短链路
         shortest_path_list = [gu.dijkstra_alg(filled_weight_list, i) for i in range(4)]
-        with ProcessPoolExecutor(max_workers=2) as executor:
+        with ProcessPoolExecutor(max_workers=4) as executor:
             jobs = []
             for index in range(self.node_size):
                 jobs.append(executor.submit(self.solve_sub_problem_one_node, index, filled_weight_list,
@@ -125,6 +127,7 @@ class SOHybridNetTEOptimizeProblem(ea.Problem):
         min_utilization_formula_val = calculator.calc_utilization_formula(self.band_width,
                                                                           total_bandwidth_used)
         min_variance = calculator.calc_remaining_bandwidth_variance(self.band_width, total_bandwidth_used)
+        print('计算一个个体的总耗时:{}'.format(time.time() - start_time))
         return [min_utilization_formula_val, min_variance]
 
     def solve_sub_problem_one_node(self, i, filled_weight_list, shortest_path_list, sdn_nodes):
@@ -132,10 +135,8 @@ class SOHybridNetTEOptimizeProblem(ea.Problem):
         legacy_node_dag = gu.build_dag(filled_weight_list, i, shortest_path_list)
         # 针对每一个顶点的有向无环图查找sdn节点，增加可用链路并验证环路
         dag, sorted_nodes = gu.add_links(filled_weight_list, legacy_node_dag, i, sdn_nodes)
-        print('混合sdn网络中目标为%d的有向无环图:\n%s\n拓扑排序:\n%s' % (i, dag, sorted_nodes))
         near_optimal_bandwidth_used = nosr.execute(dag, sorted_nodes, self.traffic, self.band_width, sdn_nodes)
-        print('sdn节点为%s, %d为目标的,各节点需求为\n%s\n，近似最优链路使用情况:\n' % (sdn_nodes, i, self.traffic[:, i]),
-              near_optimal_bandwidth_used)
+        print('sdn节点为%s, %d为目标的, 近似最优链路使用情况:\n' % (sdn_nodes, i), near_optimal_bandwidth_used)
         return near_optimal_bandwidth_used
 
     def fill_graph_weights(self, weight_list):

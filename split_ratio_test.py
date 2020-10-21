@@ -20,7 +20,7 @@ if __name__ == "__main__":
     problem = NearOptimalSplitRatioProblem(dag=dag, topological_sorted_nodes=topological_sorted_nodes,
                                            traffic=traffic, sdn_nodes=sdn_nodes, band_width=bandwidth)
     Encoding = "RI"
-    NIND = 100
+    NIND = 80
     Field = ea.crtfld(Encoding, problem.varTypes, problem.ranges, problem.borders)
     population = ea.Population(Encoding, Field, NIND)
     # myAlgorithm = ea.moea_NSGA2_templet(problem, population) # 没算出结果，再看看
@@ -67,9 +67,9 @@ if __name__ == "__main__":
     # used = problem.route_flow([0.079, 0.315, 0.606])
     # print(calculator.calc_remaining_bandwidth_variance(bandwidth, used))
     # print(calculator.calc_utilization_formula(bandwidth, used))
-    # myAlgorithm.MAXGEN = 100
-    # myAlgorithm.drawing = 2
-    # NDSet = myAlgorithm.run(prophetPop)
+    myAlgorithm.MAXGEN = 100
+    myAlgorithm.drawing = 2
+    NDSet = myAlgorithm.run(prophetPop)
     # target_val = NDSet.ObjV[:, 0] * 0.4 + NDSet.ObjV[:, 1] * 0.6
     # min_index = np.argmin(target_val)
     # print(NDSet.ObjV[min_index], min_index, NDSet.Phen[min_index])
