@@ -67,12 +67,12 @@ if __name__ == "__main__":
     # used = problem.route_flow([0.079, 0.315, 0.606])
     # print(calculator.calc_remaining_bandwidth_variance(bandwidth, used))
     # print(calculator.calc_utilization_formula(bandwidth, used))
-    myAlgorithm.MAXGEN = 100
-    myAlgorithm.drawing = 2
-    NDSet = myAlgorithm.run(prophetPop)
-    target_val = NDSet.ObjV[:, 0] * 0.4 + NDSet.ObjV[:, 1] * 0.6
-    min_index = np.argmin(target_val)
-    print(NDSet.ObjV[min_index], min_index, NDSet.Phen[min_index])
+    # myAlgorithm.MAXGEN = 100
+    # myAlgorithm.drawing = 2
+    # NDSet = myAlgorithm.run(prophetPop)
+    # target_val = NDSet.ObjV[:, 0] * 0.4 + NDSet.ObjV[:, 1] * 0.6
+    # min_index = np.argmin(target_val)
+    # print(NDSet.ObjV[min_index], min_index, NDSet.Phen[min_index])
     # for i in range(0, 20):
     #     myAlgorithm.MAXGEN = 100
     #     myAlgorithm.drawing = 2

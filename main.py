@@ -9,7 +9,7 @@ max_val = float('inf')
 
 if __name__ == '__main__':
     graph = np.array([[0, 1, 1, max_val], [1, 0, 1, 1], [1, 1, 0, 1], [max_val, 1, 1, 0]])
-    band_width = np.array([[0, 100, 100, 0], [0, 0, 100, 100], [0, 0, 0, 100], [0, 0, 0, 0]])
+    band_width = np.array([[0.0, 100.0, 100.0, 0.0], [0.0, 0.0, 100.0, 100.0], [0.0, 0.0, 0.0, 100.0], [0.0, 0.0, 0.0, 0.0]])
     traffic = np.array([[0, 10, 15, 10], [10, 0, 9, 8], [10, 10, 0, 20], [10, 10, 10, 0]])
     sdn_node_count = 1
     problem = SOHybridNetTEOptimizeProblem(graph, sdn_node_count, traffic, band_width)
