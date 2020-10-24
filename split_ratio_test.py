@@ -68,8 +68,10 @@ if __name__ == "__main__":
     # print(calculator.calc_remaining_bandwidth_variance(bandwidth, used))
     # print(calculator.calc_utilization_formula(bandwidth, used))
     myAlgorithm.MAXGEN = 100
-    myAlgorithm.drawing = 2
+    myAlgorithm.drawing = 1
     NDSet = myAlgorithm.run(prophetPop)
+    print('用时：%s 秒' % myAlgorithm.passTime)
+    print('非支配个体数：%s 个' % NDSet.sizes)
     # target_val = NDSet.ObjV[:, 0] * 0.4 + NDSet.ObjV[:, 1] * 0.6
     # min_index = np.argmin(target_val)
     # print(NDSet.ObjV[min_index], min_index, NDSet.Phen[min_index])

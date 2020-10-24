@@ -7,6 +7,7 @@ import near_optimal_split_ratio as nosr
 import calculator
 from concurrent.futures import ProcessPoolExecutor, as_completed
 import time
+import multiprocessing
 
 '''
 研究OSPF-SDN混合网络的ECMP权重优化，节点升级策略及SDN节点近似最优分流策略
@@ -101,7 +102,7 @@ class SOHybridNetTEOptimizeProblem(ea.Problem):
         pop_size = len(pop_values)
         obj_val_list = np.zeros([pop_size, self.M])
         start_time = time.time()
-        with ProcessPoolExecutor(max_workers=2) as executor:
+        with ProcessPoolExecutor(max_workers=4) as executor:
             for index, result in zip(range(pop_size), executor.map(self.solve_one_pop, pop_values)):
                 obj_val_list[index] = result
         print('计算一个种群总耗时:{}'.format(time.time() - start_time))
@@ -121,11 +122,9 @@ class SOHybridNetTEOptimizeProblem(ea.Problem):
             for index in range(self.node_size):
                 jobs.append(executor.submit(self.solve_sub_problem_one_node, index, filled_weight_list,
                                             shortest_path_list, sdn_nodes))
-                for job in as_completed(jobs):
-                    total_bandwidth_used = total_bandwidth_used + job.result()
-
-        min_utilization_formula_val = calculator.calc_utilization_formula(self.band_width,
-                                                                          total_bandwidth_used)
+            for job in as_completed(jobs):
+                total_bandwidth_used = total_bandwidth_used + job.result()
+        min_utilization_formula_val = calculator.calc_utilization_formula(self.band_width, total_bandwidth_used)
         min_variance = calculator.calc_remaining_bandwidth_variance(self.band_width, total_bandwidth_used)
         print('计算一个个体的总耗时:{}'.format(time.time() - start_time))
         return [min_utilization_formula_val, min_variance]

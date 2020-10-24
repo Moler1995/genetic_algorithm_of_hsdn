@@ -21,7 +21,13 @@ if __name__ == "__main__":
     NIND = 50
     population = ea.PsyPopulation(Encodings, Fields, NIND)
     myAlgorithm = ea.moea_psy_NSGA3_templet(problem, population)
-    myAlgorithm.MAXGEN = 100
+    myAlgorithm.MAXGEN = 20
+    '''
+    pop = ea.PsyPopulation(Encodings, Fields, 1, Phen=np.array([[3, 4, 3, 5, 3, 4]])) 测试最优解
+
+    problem.aimFunc1(pop)
+    problem.aimFunc(pop)
+    '''
 
     myAlgorithm.drawing = 2
     NDSet = myAlgorithm.run()
