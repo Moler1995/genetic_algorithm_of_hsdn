@@ -7,7 +7,8 @@ max_val = float('inf')
 if __name__ == "__main__":
     # 初始化连接图
     graph = np.array([[0, 1, 1, max_val], [1, 0, 1, 1], [1, 1, 0, 1], [max_val, 1, 1, 0]])
-    band_width = np.array([[0.0, 100.0, 100.0, 0.0], [0.0, 0.0, 100.0, 100.0], [0.0, 0.0, 0.0, 100.0], [0.0, 0.0, 0.0, 0.0]])
+    band_width = np.array([[0.0, 100.0, 100.0, 0.0], [0.0, 0.0, 100.0, 100.0], [0.0, 0.0, 0.0, 100.0],
+                           [0.0, 0.0, 0.0, 0.0]])
     traffic = np.array([[0, 10, 15, 10], [10, 0, 9, 8], [10, 10, 0, 20], [10, 10, 10, 0]])
     sdn_node_count = 1
     problem = SOHybridNetTEOptimizeProblem(graph, sdn_node_count, traffic, band_width)
@@ -17,18 +18,12 @@ if __name__ == "__main__":
     Field2 = ea.crtfld(Encodings[1], problem.varTypes[sdn_node_count:],
                        problem.ranges[:, sdn_node_count:], problem.borders[:, sdn_node_count:])  # 创建区域描述器
     Fields = [Field1, Field2]
+
     # 种群规模
     NIND = 50
     population = ea.PsyPopulation(Encodings, Fields, NIND)
     myAlgorithm = ea.moea_psy_NSGA3_templet(problem, population)
     myAlgorithm.MAXGEN = 20
-    '''
-    pop = ea.PsyPopulation(Encodings, Fields, 1, Phen=np.array([[3, 4, 3, 5, 3, 4]])) 测试最优解
-
-    problem.aimFunc1(pop)
-    problem.aimFunc(pop)
-    '''
-
     myAlgorithm.drawing = 2
     NDSet = myAlgorithm.run()
     NDSet.save()  # 把结果保存到文件中
@@ -36,3 +31,10 @@ if __name__ == "__main__":
     print('用时：%s 秒' % myAlgorithm.passTime)
     print('非支配个体数：%s 个' % NDSet.sizes)
     print('单位时间找到帕累托前沿点个数：%s 个' % (int(NDSet.sizes // myAlgorithm.passTime)))
+
+    '''
+    pop = ea.PsyPopulation(Encodings, Fields, 1, Phen=np.array([[3, 2, 6, 6, 5, 6]]))  # 测试最优解
+
+    problem.aimFunc1(pop)
+    # problem.aimFunc(pop)
+    '''

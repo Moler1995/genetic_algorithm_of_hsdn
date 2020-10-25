@@ -94,6 +94,7 @@ class SOHybridNetTEOptimizeProblem(ea.Problem):
                                                                               total_bandwidth_used)
             min_variance = calculator.calc_remaining_bandwidth_variance(self.band_width, total_bandwidth_used)
             obj_val_list.append([max_utilization_formula_val, min_variance])
+            print(total_bandwidth_used)
         pop.ObjV = np.hstack(obj_val_list)
 
     def aimFunc(self, pop):
