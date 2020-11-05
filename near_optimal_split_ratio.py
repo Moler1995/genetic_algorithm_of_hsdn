@@ -30,11 +30,14 @@ def execute(dag, topological_sorted_nodes, traffic, bandwidth, sdn_nodes):
             for index in range(link_count):
                 if index == link_count - 1:
                     chrom.append(NIND - sum(chrom[start_index:start_index + index]))
-                    initChrom.append(chrom.copy())
-                    chrom.clear()
                     start_index += link_count
                 else:
+                    print(sum(chrom[start_index:start_index + index]))
                     chrom.append(random.randint(0, NIND - sum(chrom[start_index:start_index + index])))
+        if len(chrom) > 0:
+            initChrom.append(chrom.copy())
+            chrom.clear()
+    print(initChrom)
     if len(initChrom) == 0:
         # 所有sdn节点都只有一条出口链路，直接根据ecmp规则仿真打流，并计算此时的链路利用情况
         print('场景1：所有sdn节点都只有一条出链路，按照ecmp规则流量仿真')

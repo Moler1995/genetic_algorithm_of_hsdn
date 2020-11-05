@@ -80,7 +80,7 @@ class SOHybridNetTEOptimizeProblem(ea.Problem):
             filled_weight_list = self.fill_graph_weights(one_pop[self.sdn_node_count:])
             total_bandwidth_used = np.zeros([self.node_size, self.node_size])
             # Dijkstra算法对每个顶点计算最短链路
-            shortest_path_list = [gu.dijkstra_alg(filled_weight_list, i) for i in range(4)]
+            shortest_path_list = [gu.dijkstra_alg(filled_weight_list, i) for i in range(self.node_size)]
             for i in range(self.node_size):
                 # 先将每个节点看成传统节点，以每个顶点为目标节点，构建有向无环图
                 legacy_node_dag = gu.build_dag(filled_weight_list, i, shortest_path_list)
@@ -103,7 +103,7 @@ class SOHybridNetTEOptimizeProblem(ea.Problem):
         pop_size = len(pop_values)
         obj_val_list = np.zeros([pop_size, self.M])
         start_time = time.time()
-        with ProcessPoolExecutor(max_workers=4) as executor:
+        with ProcessPoolExecutor(max_workers=2) as executor:
             for index, result in zip(range(pop_size), executor.map(self.solve_one_pop, pop_values)):
                 obj_val_list[index] = result
         print('计算一个种群总耗时:{}'.format(time.time() - start_time))
@@ -117,8 +117,8 @@ class SOHybridNetTEOptimizeProblem(ea.Problem):
         filled_weight_list = self.fill_graph_weights(one_pop[self.sdn_node_count:])
         total_bandwidth_used = np.zeros([self.node_size, self.node_size])
         # Dijkstra算法对每个顶点计算最短链路
-        shortest_path_list = [gu.dijkstra_alg(filled_weight_list, i) for i in range(4)]
-        with ProcessPoolExecutor(max_workers=4) as executor:
+        shortest_path_list = [gu.dijkstra_alg(filled_weight_list, i) for i in range(self.node_size)]
+        with ProcessPoolExecutor(max_workers=2) as executor:
             jobs = []
             for index in range(self.node_size):
                 jobs.append(executor.submit(self.solve_sub_problem_one_node, index, filled_weight_list,
