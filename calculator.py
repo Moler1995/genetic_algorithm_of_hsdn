@@ -4,27 +4,42 @@ from fractions import Fraction
 max_val = float('inf')
 
 
-def calc_utilization_formula(total_band_width, used_bandwidth):
+def calc_utilization_formula(total_band_width, used_bandwidth, do_print=False):
+    """
+    计算总的链路利用率标准函数
+    :param total_band_width: 初始带宽
+    :param used_bandwidth:  使用带宽
+    :param do_print: 是否打印带宽利用率
+    :return:
+    """
     filled_bandwidth = total_band_width.copy()
     filled_bandwidth[filled_bandwidth == 0.0] = max_val
     utilization_matrix = used_bandwidth / filled_bandwidth
-    # print(utilization_matrix)
-    max_utilization = np.max(utilization_matrix)
+    if do_print:
+        print(utilization_matrix)
+    # max_utilization = np.max(utilization_matrix)
     max_x_index, max_y_index = np.unravel_index(np.argmax(utilization_matrix), utilization_matrix.shape)
-    max_utilization_bandwidth_used = used_bandwidth[max_x_index][max_y_index]
-    max_utilization_raw_bandwidth = total_band_width[max_x_index][max_y_index]
-    if 0 <= max_utilization <= Fraction(1, 3):
-        return max_utilization_bandwidth_used
-    elif Fraction(1, 3) < max_utilization <= Fraction(2, 3):
-        return 3 * max_utilization_bandwidth_used - Fraction(2, 3) * max_utilization_raw_bandwidth
-    elif Fraction(2, 3) < max_utilization <= Fraction(9, 10):
-        return 10 * max_utilization_bandwidth_used - Fraction(16, 3) * max_utilization_raw_bandwidth
-    elif Fraction(9, 10) < max_utilization <= 1:
-        return 70 * max_utilization_bandwidth_used - Fraction(178, 3) * max_utilization_raw_bandwidth
-    elif 1 < max_utilization <= Fraction(11, 10):
-        return 500 * max_utilization_bandwidth_used - Fraction(1468, 3) * max_utilization_raw_bandwidth
-    else:
-        return 5000 * max_utilization_bandwidth_used - Fraction(16318, 3) * max_utilization_raw_bandwidth
+    # max_utilization_bandwidth_used = used_bandwidth[max_x_index][max_y_index]
+    # max_utilization_raw_bandwidth = total_band_width[max_x_index][max_y_index]
+    target_val = 0
+    for i in range(len(total_band_width)):
+        for j in range(len(total_band_width)):
+            band_width_used = used_bandwidth[i][j]
+            utilization = utilization_matrix[i][j]
+            raw_bandwidth = total_band_width[i][j]
+            if 0 <= utilization <= Fraction(1, 3):
+                target_val += band_width_used
+            elif Fraction(1, 3) < utilization <= Fraction(2, 3):
+                target_val += 3 * band_width_used - Fraction(2, 3) * raw_bandwidth
+            elif Fraction(2, 3) < utilization <= Fraction(9, 10):
+                target_val += 10 * band_width_used - Fraction(16, 3) * raw_bandwidth
+            elif Fraction(9, 10) < utilization <= 1:
+                target_val += 70 * band_width_used - Fraction(178, 3) * raw_bandwidth
+            elif 1 < utilization <= Fraction(11, 10):
+                target_val += 500 * band_width_used - Fraction(1468, 3) * raw_bandwidth
+            else:
+                target_val += 5000 * band_width_used - Fraction(16318, 3) * raw_bandwidth
+    return target_val
 
 
 def calc_remaining_bandwidth_variance(total_band_width, used_bandwidth):

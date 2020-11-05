@@ -32,12 +32,10 @@ def execute(dag, topological_sorted_nodes, traffic, bandwidth, sdn_nodes):
                     chrom.append(NIND - sum(chrom[start_index:start_index + index]))
                     start_index += link_count
                 else:
-                    print(sum(chrom[start_index:start_index + index]))
                     chrom.append(random.randint(0, NIND - sum(chrom[start_index:start_index + index])))
         if len(chrom) > 0:
             initChrom.append(chrom.copy())
             chrom.clear()
-    print(initChrom)
     if len(initChrom) == 0:
         # 所有sdn节点都只有一条出口链路，直接根据ecmp规则仿真打流，并计算此时的链路利用情况
         print('场景1：所有sdn节点都只有一条出链路，按照ecmp规则流量仿真')
@@ -52,7 +50,7 @@ def execute(dag, topological_sorted_nodes, traffic, bandwidth, sdn_nodes):
         NDSet = myAlgorithm.run(prophetPop)
         # 返回子问题多目标优化的近似最优解，难点：从进化算法得出的帕累托非支配解中选择最想要的点，(两个目标的权重选择策略)
         # 看优化重心在最小的最大链路利用率，还是最小剩余链路带宽方差
-        optimal_solution_weight = [0.4, 0.6]
+        optimal_solution_weight = [0.6, 0.4]
         # 返回加权最小值对应的解
         weighted_NDSet = NDSet.ObjV[:, 0] * optimal_solution_weight[0] + NDSet.ObjV[:, 1] * optimal_solution_weight[1]
         near_optimal_bandwidth_used = problem.route_flow(NDSet.Phen[np.argmin(weighted_NDSet)])

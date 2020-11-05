@@ -87,14 +87,15 @@ class SOHybridNetTEOptimizeProblem(ea.Problem):
                 # 针对每一个顶点的有向无环图查找sdn节点，增加可用链路并验证环路
                 dag, sorted_nodes = gu.add_links(filled_weight_list, legacy_node_dag, i, sdn_nodes)
                 near_optimal_bandwidth_used = nosr.execute(dag, sorted_nodes, self.traffic, self.band_width, sdn_nodes)
-                print('sdn节点为%s, %d为目标的, 近似最优链路使用情况:\n' % (sdn_nodes, i),
-                      near_optimal_bandwidth_used)
+                # print('sdn节点为%s, %d为目标的, 近似最优链路使用情况:\n' % (sdn_nodes, i),
+                #       near_optimal_bandwidth_used)
                 total_bandwidth_used = near_optimal_bandwidth_used + total_bandwidth_used
             max_utilization_formula_val = calculator.calc_utilization_formula(self.band_width,
-                                                                              total_bandwidth_used)
+                                                                              total_bandwidth_used, True)
             min_variance = calculator.calc_remaining_bandwidth_variance(self.band_width, total_bandwidth_used)
             obj_val_list.append([max_utilization_formula_val, min_variance])
-            print(total_bandwidth_used)
+            # print(total_bandwidth_used)
+            print("target_one: " + str(max_utilization_formula_val) + " min_variance: " + str(min_variance))
         pop.ObjV = np.hstack(obj_val_list)
 
     def aimFunc(self, pop):
@@ -136,7 +137,7 @@ class SOHybridNetTEOptimizeProblem(ea.Problem):
         # 针对每一个顶点的有向无环图查找sdn节点，增加可用链路并验证环路
         dag, sorted_nodes = gu.add_links(filled_weight_list, legacy_node_dag, i, sdn_nodes)
         near_optimal_bandwidth_used = nosr.execute(dag, sorted_nodes, self.traffic, self.band_width, sdn_nodes)
-        print('sdn节点为%s, %d为目标的, 近似最优链路使用情况:\n' % (sdn_nodes, i), near_optimal_bandwidth_used)
+        # print('sdn节点为%s, %d为目标的, 近似最优链路使用情况:\n' % (sdn_nodes, i), near_optimal_bandwidth_used)
         return near_optimal_bandwidth_used
 
     def fill_graph_weights(self, weight_list):

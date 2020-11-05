@@ -40,6 +40,7 @@ if __name__ == "__main__":
                     sdn_node = j
         sdn_nodes.append(sdn_node)
         max_direct_link = 0
+    sdn_nodes = [3, 6, 9]
     traffic = project_xml_reader.parse_traffics("abilene/TM-2004-09-10-2030.xml")
 
     # 区域描述
@@ -53,6 +54,6 @@ if __name__ == "__main__":
     weight_size = int(np.sum(graph == 1) / 2)
     weights = [1] * weight_size
     pop = ea.PsyPopulation(Encodings, Fields, 1, Phen=np.array([sdn_nodes + weights]))
-    problem.aimFunc1(pop)
+    problem.aimFunc(pop)
 
 
