@@ -50,7 +50,7 @@ def execute(dag, topological_sorted_nodes, traffic, bandwidth, sdn_nodes):
         NDSet = myAlgorithm.run(prophetPop)
         # 返回子问题多目标优化的近似最优解，难点：从进化算法得出的帕累托非支配解中选择最想要的点，(两个目标的权重选择策略)
         # 看优化重心在最小的最大链路利用率，还是最小剩余链路带宽方差
-        optimal_solution_weight = [0.6, 0.4]
+        optimal_solution_weight = [0.4, 0.6]
         # 返回加权最小值对应的解
         weighted_NDSet = NDSet.ObjV[:, 0] * optimal_solution_weight[0] + NDSet.ObjV[:, 1] * optimal_solution_weight[1]
         near_optimal_bandwidth_used = problem.route_flow(NDSet.Phen[np.argmin(weighted_NDSet)])
@@ -67,7 +67,7 @@ class NearOptimalSplitRatioProblem(ea.Problem):
        --70l(e)-178/3c(e),    9/10<l(e)/c(e)<=1
        --500l(e)-1468/3c(e)   1<l(e)/c(e)<=11/10
        --5000l(e)-16318/3c(e) l(e)/c(e)>11/10
-    F2=σ(B(e)) = Σ(B(e_i)-B(e))^2 / N(e)
+    F2=σ(B(e)) = (Σ(B(e_i)-B(e))^2 / N(e)) ** (1/2)
     .s.t sum(flow_split_ratio(v)) = 1
     """
     def __init__(self, dag=None, topological_sorted_nodes=None, traffic=None, sdn_nodes=None, band_width=None):

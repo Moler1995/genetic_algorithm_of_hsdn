@@ -42,6 +42,20 @@ def calc_utilization_formula(total_band_width, used_bandwidth, do_print=False):
     return target_val
 
 
+def calc_max_utilization(total_band_width, used_bandwidth):
+    """
+    计算总的链路利用率标准函数
+    :param total_band_width: 初始带宽
+    :param used_bandwidth:  使用带宽
+    :return:
+    """
+    filled_bandwidth = total_band_width.copy()
+    filled_bandwidth[filled_bandwidth == 0.0] = max_val
+    utilization_matrix = used_bandwidth / filled_bandwidth
+    max_utilization = np.max(utilization_matrix)
+    return max_utilization
+
+
 def calc_remaining_bandwidth_variance(total_band_width, used_bandwidth):
     remaining_bandwidth = total_band_width - used_bandwidth
     direct_link_count = np.count_nonzero(total_band_width)
@@ -53,4 +67,4 @@ def calc_remaining_bandwidth_variance(total_band_width, used_bandwidth):
             # 判断一下两点之间是否有直接链接
             if total_band_width[i][j] != 0:
                 variance_sum += (remaining_bandwidth[i][j] - avg_remaining_bandwidth) ** 2
-    return variance_sum / direct_link_count
+    return (variance_sum / direct_link_count) ** (1 / 2)
