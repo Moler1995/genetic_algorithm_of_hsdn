@@ -4,9 +4,42 @@ import geatpy as ea
 from hsdn_near_optimal_performance import SOHybridNetTEOptimizeProblem
 import project_xml_reader
 import os
+from concurrent.futures import ProcessPoolExecutor
+import json
 
 max_val = float('inf')
 max_utilization_dict = {}
+
+
+def solve_segments(dir_name, graph, sdn_count, sdn_nodes, bandwidth, worker_count):
+    print(dir_name)
+    global max_utilization_dict
+    with ProcessPoolExecutor(max_workers=worker_count) as executor:
+        jobs = {}
+        for traffic_xml in os.listdir(dir_name):
+            jobs[traffic_xml] = executor.submit(solve_one_file, graph, sdn_count, sdn_nodes, bandwidth,
+                                                os.path.join(dir_name, traffic_xml))
+        for job_key in jobs.keys():
+            max_utilization_dict[job_key] = jobs[job_key].result()
+    print(json.dumps(max_utilization_dict))
+
+
+def solve_one_file(graph, sdn_count, sdn_nodes, bandwidth, filename):
+    traffic = project_xml_reader.parse_traffics(filename)
+    # 区域描述
+    problem = SOHybridNetTEOptimizeProblem(graph, sdn_count, traffic, bandwidth)
+    Encodings = ['P', 'RI']
+    Field1 = ea.crtfld(Encodings[0], problem.varTypes[:sdn_count],
+                       problem.ranges[:, :sdn_count], problem.borders[:, :sdn_count])  # 创建区域描述器
+    Field2 = ea.crtfld(Encodings[1], problem.varTypes[sdn_count:],
+                       problem.ranges[:, sdn_count:], problem.borders[:, sdn_count:])  # 创建区域描述器
+    Fields = [Field1, Field2]
+    weight_size = int(np.sum(graph == 1) / 2)
+    weights = [1] * weight_size
+    pop = ea.PsyPopulation(Encodings, Fields, 1, Phen=np.array([sdn_nodes + weights]))
+
+    return problem.aimFunc1(pop)
+
 
 if __name__ == "__main__":
     """
@@ -45,20 +78,5 @@ if __name__ == "__main__":
     # sdn_nodes = [4, 6, 10]
     for month_dir in os.listdir("abilene/TM/2004"):
         month_dir_abs_path = os.path.join("abilene/TM/2004", month_dir)
-        for traffic_xml in os.listdir(month_dir_abs_path):
-            traffic = project_xml_reader.parse_traffics(os.path.join(month_dir_abs_path, traffic_xml))
-            # 区域描述
-            problem = SOHybridNetTEOptimizeProblem(graph, sdn_count, traffic, bandwidth, traffic_filename=traffic_xml)
-            Encodings = ['P', 'RI']
-            Field1 = ea.crtfld(Encodings[0], problem.varTypes[:sdn_count],
-                               problem.ranges[:, :sdn_count], problem.borders[:, :sdn_count])  # 创建区域描述器
-            Field2 = ea.crtfld(Encodings[1], problem.varTypes[sdn_count:],
-                               problem.ranges[:, sdn_count:], problem.borders[:, sdn_count:])  # 创建区域描述器
-            Fields = [Field1, Field2]
-            weight_size = int(np.sum(graph == 1) / 2)
-            weights = [1] * weight_size
-            pop = ea.PsyPopulation(Encodings, Fields, 1, Phen=np.array([sdn_nodes + weights]))
-            problem.aimFunc(pop)
-
-    print(max_utilization_dict)
+        solve_segments(month_dir_abs_path, graph, sdn_count, sdn_nodes, bandwidth, 10)
 

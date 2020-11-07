@@ -36,7 +36,7 @@ max_val = float('inf')
 
 
 class SOHybridNetTEOptimizeProblem(ea.Problem):
-    def __init__(self, graph=None, sdn_node_count=0, traffic=None, band_width=None, traffic_filename=None):
+    def __init__(self, graph=None, sdn_node_count=0, traffic=None, band_width=None):
         """
         构造函数
         :param graph: 连接图,有连接为1无连接为max_val,本节点为0
@@ -69,7 +69,6 @@ class SOHybridNetTEOptimizeProblem(ea.Problem):
         self.graph = graph
         self.traffic = traffic
         self.band_width = band_width
-        self.traffic_filename = traffic_filename
 
     def aimFunc1(self, pop):
         pop_values = pop.Phen
@@ -92,11 +91,14 @@ class SOHybridNetTEOptimizeProblem(ea.Problem):
                 #       near_optimal_bandwidth_used)
                 total_bandwidth_used = near_optimal_bandwidth_used + total_bandwidth_used
             max_utilization_formula_val = calculator.calc_utilization_formula(self.band_width,
-                                                                              total_bandwidth_used, True)
+                                                                              total_bandwidth_used, False)
             min_variance = calculator.calc_remaining_bandwidth_variance(self.band_width, total_bandwidth_used)
             obj_val_list.append([max_utilization_formula_val, min_variance])
+            max_utilization = calculator.calc_max_utilization(self.band_width, total_bandwidth_used)
+            return max_utilization
             # print(total_bandwidth_used)
-            print("target_one: " + str(max_utilization_formula_val) + " min_variance: " + str(min_variance))
+            # print("target_one: " + str(max_utilization_formula_val) + " min_variance: " + str(min_variance))
+
         pop.ObjV = np.hstack(obj_val_list)
 
     def aimFunc(self, pop):
@@ -105,7 +107,7 @@ class SOHybridNetTEOptimizeProblem(ea.Problem):
         pop_size = len(pop_values)
         obj_val_list = np.zeros([pop_size, self.M])
         start_time = time.time()
-        with ProcessPoolExecutor(max_workers=2) as executor:
+        with ProcessPoolExecutor(max_workers=1) as executor:
             for index, result in zip(range(pop_size), executor.map(self.solve_one_pop, pop_values)):
                 obj_val_list[index] = result
         # print('计算一个种群总耗时:{}'.format(time.time() - start_time))
@@ -127,7 +129,7 @@ class SOHybridNetTEOptimizeProblem(ea.Problem):
                                             shortest_path_list, sdn_nodes))
             for job in as_completed(jobs):
                 total_bandwidth_used = total_bandwidth_used + job.result()
-        min_utilization_formula_val = calculator.calc_utilization_formula(self.band_width, total_bandwidth_used, True)
+        min_utilization_formula_val = calculator.calc_utilization_formula(self.band_width, total_bandwidth_used, False)
         min_variance = calculator.calc_remaining_bandwidth_variance(self.band_width, total_bandwidth_used)
         max_utilization = calculator.calc_max_utilization(self.band_width, total_bandwidth_used)
         print(max_utilization)

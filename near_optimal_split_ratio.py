@@ -38,7 +38,7 @@ def execute(dag, topological_sorted_nodes, traffic, bandwidth, sdn_nodes):
             chrom.clear()
     if len(initChrom) == 0:
         # 所有sdn节点都只有一条出口链路，直接根据ecmp规则仿真打流，并计算此时的链路利用情况
-        print('场景1：所有sdn节点都只有一条出链路，按照ecmp规则流量仿真')
+        # print('场景1：所有sdn节点都只有一条出链路，按照ecmp规则流量仿真')
         return problem.route_flow(None)
     else:
         print('场景2：sdn节点最优分流比例进化算法开始....')
