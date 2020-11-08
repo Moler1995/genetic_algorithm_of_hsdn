@@ -36,7 +36,7 @@ max_val = float('inf')
 
 
 class SOHybridNetTEOptimizeProblem(ea.Problem):
-    def __init__(self, graph=None, sdn_node_count=0, traffic=None, band_width=None):
+    def __init__(self, graph=None, sdn_node_count=0, traffic=None, band_width=None, xml_name=None):
         """
         构造函数
         :param graph: 连接图,有连接为1无连接为max_val,本节点为0
@@ -69,6 +69,7 @@ class SOHybridNetTEOptimizeProblem(ea.Problem):
         self.graph = graph
         self.traffic = traffic
         self.band_width = band_width
+        self.xml_name = xml_name
 
     def aimFunc1(self, pop):
         pop_values = pop.Phen
@@ -122,7 +123,7 @@ class SOHybridNetTEOptimizeProblem(ea.Problem):
         total_bandwidth_used = np.zeros([self.node_size, self.node_size])
         # Dijkstra算法对每个顶点计算最短链路
         shortest_path_list = [gu.dijkstra_alg(filled_weight_list, i) for i in range(self.node_size)]
-        with ProcessPoolExecutor(max_workers=3) as executor:
+        with ProcessPoolExecutor(max_workers=4) as executor:
             jobs = []
             for index in range(self.node_size):
                 jobs.append(executor.submit(self.solve_sub_problem_one_node, index, filled_weight_list,
@@ -132,7 +133,7 @@ class SOHybridNetTEOptimizeProblem(ea.Problem):
         min_utilization_formula_val = calculator.calc_utilization_formula(self.band_width, total_bandwidth_used, True)
         min_variance = calculator.calc_remaining_bandwidth_variance(self.band_width, total_bandwidth_used)
         max_utilization = calculator.calc_max_utilization(self.band_width, total_bandwidth_used)
-        print(max_utilization)
+        print(self.xml_name + ": ", max_utilization)
         print("target_one: " + str(min_utilization_formula_val) + " min_variance: " + str(min_variance))
         # print('计算一个个体的总耗时:{}'.format(time.time() - start_time))
         return [min_utilization_formula_val, min_variance]

@@ -9,14 +9,15 @@ import json
 
 max_val = float('inf')
 max_utilization_dict = {}
+base_dir = "abilene/TM/2004"
 
 
 def calc_normal_utilization(graph, sdn_count, sdn_nodes, bandwidth):
-    exclude_dir = ['03', '04', '05']
-    for month_dir in os.listdir("abilene/TM/2004"):
+    exclude_dir = []
+    for month_dir in os.listdir(base_dir):
         if month_dir in exclude_dir:
             continue
-        month_dir_abs_path = os.path.join("abilene/TM/2004", month_dir)
+        month_dir_abs_path = os.path.join(base_dir, month_dir)
         solve_segments(month_dir_abs_path, graph, sdn_count, sdn_nodes, bandwidth, 10)
 
 
@@ -33,13 +34,14 @@ def solve_segments(dir_name, graph, sdn_count, sdn_nodes, bandwidth, worker_coun
     json_name = ''.join(['ecmp_utilization/', dir_name.replace('\\', '_').replace('/', '_'), '.json'])
     f = open(json_name, mode='w', encoding='utf-8')
     f.write(json.dumps(max_utilization_dict))
+    max_utilization_dict.clear()
     f.close()
 
 
 def solve_one_file(graph, sdn_count, sdn_nodes, bandwidth, filename):
     traffic = project_xml_reader.parse_traffics(filename)
     # 区域描述
-    problem = SOHybridNetTEOptimizeProblem(graph, sdn_count, traffic, bandwidth)
+    problem = SOHybridNetTEOptimizeProblem(graph, sdn_count, traffic, bandwidth, filename)
     Encodings = ['P', 'RI']
     Field1 = ea.crtfld(Encodings[0], problem.varTypes[:sdn_count],
                        problem.ranges[:, :sdn_count], problem.borders[:, :sdn_count])  # 创建区域描述器
@@ -51,6 +53,17 @@ def solve_one_file(graph, sdn_count, sdn_nodes, bandwidth, filename):
     pop = ea.PsyPopulation(Encodings, Fields, 1, Phen=np.array([sdn_nodes + weights]))
 
     return problem.aimFunc(pop)
+
+
+def optimize_link_utilization(graph, sdn_count, sdn_nodes, bandwidth, month_index, json_name, threshold=0.5):
+    f = open(json_name, 'r', encoding='utf-8')
+    utilization_dict = dict(json.load(f))
+    f.close()
+    for file_name in utilization_dict.keys():
+        if utilization_dict[file_name] >= threshold:
+            print(file_name, ": ", utilization_dict[file_name])
+            file_abs_path = os.path.join(base_dir, month_index, file_name)
+            solve_one_file(graph, sdn_count, sdn_nodes, bandwidth, file_abs_path)
 
 
 if __name__ == "__main__":
@@ -90,5 +103,5 @@ if __name__ == "__main__":
     sdn_nodes = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
     # calc_normal_utilization(graph, sdn_count, sdn_nodes, bandwidth) # 计算所有流量的链路利用率
     # "TM-2004-06-02-1815.xml": 1.117167215658603,
-    solve_one_file(graph, sdn_count, sdn_nodes, bandwidth, "abilene/TM/2004/06/TM-2004-06-02-1815.xml")
-
+    # solve_one_file(graph, sdn_count, sdn_nodes, bandwidth, "abilene/TM/2004/06/TM-2004-06-02-1815.xml")
+    optimize_link_utilization(graph, sdn_count, sdn_nodes, bandwidth, '04', 'ecmp_utilization/abilene_TM_2004_04.json')
