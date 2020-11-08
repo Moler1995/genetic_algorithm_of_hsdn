@@ -11,6 +11,15 @@ max_val = float('inf')
 max_utilization_dict = {}
 
 
+def calc_normal_utilization(graph, sdn_count, sdn_nodes, bandwidth):
+    exclude_dir = ['03', '04', '05']
+    for month_dir in os.listdir("abilene/TM/2004"):
+        if month_dir in exclude_dir:
+            continue
+        month_dir_abs_path = os.path.join("abilene/TM/2004", month_dir)
+        solve_segments(month_dir_abs_path, graph, sdn_count, sdn_nodes, bandwidth, 10)
+
+
 def solve_segments(dir_name, graph, sdn_count, sdn_nodes, bandwidth, worker_count):
     print(dir_name)
     global max_utilization_dict
@@ -21,7 +30,10 @@ def solve_segments(dir_name, graph, sdn_count, sdn_nodes, bandwidth, worker_coun
                                                 os.path.join(dir_name, traffic_xml))
         for job_key in jobs.keys():
             max_utilization_dict[job_key] = jobs[job_key].result()
-    print(json.dumps(max_utilization_dict))
+    json_name = ''.join(['ecmp_utilization/', dir_name.replace('\\', '_').replace('/', '_'), '.json'])
+    f = open(json_name, mode='w', encoding='utf-8')
+    f.write(json.dumps(max_utilization_dict))
+    f.close()
 
 
 def solve_one_file(graph, sdn_count, sdn_nodes, bandwidth, filename):
@@ -38,7 +50,7 @@ def solve_one_file(graph, sdn_count, sdn_nodes, bandwidth, filename):
     weights = [1] * weight_size
     pop = ea.PsyPopulation(Encodings, Fields, 1, Phen=np.array([sdn_nodes + weights]))
 
-    return problem.aimFunc1(pop)
+    return problem.aimFunc(pop)
 
 
 if __name__ == "__main__":
@@ -58,7 +70,7 @@ if __name__ == "__main__":
         bandwidth[4][9], bandwidth[5][6], bandwidth[6][7], bandwidth[6][8], bandwidth[7][8], bandwidth[8][9], \
         bandwidth[9][10], bandwidth[10][11] = [9920000] * 14
     bandwidth[3][10] = 2480000
-    sdn_count = 0
+    sdn_count = 12
     sdn_nodes = []
     max_direct_link = 0
     for i in range(sdn_count):
@@ -75,8 +87,8 @@ if __name__ == "__main__":
                     sdn_node = j
         sdn_nodes.append(sdn_node)
         max_direct_link = 0
-    # sdn_nodes = [4, 6, 10]
-    for month_dir in os.listdir("abilene/TM/2004"):
-        month_dir_abs_path = os.path.join("abilene/TM/2004", month_dir)
-        solve_segments(month_dir_abs_path, graph, sdn_count, sdn_nodes, bandwidth, 10)
+    sdn_nodes = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+    # calc_normal_utilization(graph, sdn_count, sdn_nodes, bandwidth) # 计算所有流量的链路利用率
+    # "TM-2004-06-02-1815.xml": 1.117167215658603,
+    solve_one_file(graph, sdn_count, sdn_nodes, bandwidth, "abilene/TM/2004/06/TM-2004-06-02-1815.xml")
 
