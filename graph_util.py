@@ -115,6 +115,8 @@ def build_dag(graph, source_index, min_weight_matrix):
             next_hop = shortest_path.popleft()
             while shortest_path.__len__() != 0:
                 next_next_hop = shortest_path.popleft()
+                if dag[next_next_hop][next_hop] == 1:
+                    continue
                 dag[next_hop][next_next_hop] = graph[next_hop][next_next_hop]
                 next_hop = next_next_hop
     # 矩阵转置，变为节点的入链路的有向无环图

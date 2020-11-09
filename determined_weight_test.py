@@ -9,33 +9,45 @@ import json
 
 max_val = float('inf')
 max_utilization_dict = {}
+congestion_times_dict = {}
 base_dir = "abilene/TM/2004"
+num_to_city_dict = {2: "ATLA-M5", 3: "ATLAng", 11: "CHINng", 8: "DNVRng", 4: "HSTNng", 10: "IPLSng",
+                    9: "KSCYng", 5: "LOSAng", 0: "NYCMng", 6: "SNVAng", 7: "STTLng", 1: "WASHng"}
 
 
 def calc_normal_utilization(graph, sdn_count, sdn_nodes, bandwidth):
-    exclude_dir = []
+    exclude_dir = ['03', '05', '06', '07', '08', '09']
     for month_dir in os.listdir(base_dir):
         if month_dir in exclude_dir:
             continue
         month_dir_abs_path = os.path.join(base_dir, month_dir)
-        solve_segments(month_dir_abs_path, graph, sdn_count, sdn_nodes, bandwidth, 10)
+        solve_segments(month_dir_abs_path, graph, sdn_count, sdn_nodes, bandwidth, 4)
+    print(congestion_times_dict)
 
 
 def solve_segments(dir_name, graph, sdn_count, sdn_nodes, bandwidth, worker_count):
     print(dir_name)
     global max_utilization_dict
+    global congestion_times_dict
     with ProcessPoolExecutor(max_workers=worker_count) as executor:
         jobs = {}
         for traffic_xml in os.listdir(dir_name):
             jobs[traffic_xml] = executor.submit(solve_one_file, graph, sdn_count, sdn_nodes, bandwidth,
                                                 os.path.join(dir_name, traffic_xml))
         for job_key in jobs.keys():
-            max_utilization_dict[job_key] = jobs[job_key].result()
-    json_name = ''.join(['ecmp_utilization/', dir_name.replace('\\', '_').replace('/', '_'), '.json'])
-    f = open(json_name, mode='w', encoding='utf-8')
-    f.write(json.dumps(max_utilization_dict))
-    max_utilization_dict.clear()
-    f.close()
+            utilization, max_x, max_y = jobs[job_key].result()
+            max_utilization_dict[job_key] = utilization
+            cong_key = num_to_city_dict[max_x] + "->" + num_to_city_dict[max_y]
+            if utilization > 0.9:
+                if cong_key in congestion_times_dict.keys():
+                    congestion_times_dict[cong_key] = congestion_times_dict[cong_key] + 1
+                else:
+                    congestion_times_dict[cong_key] = 1
+    # json_name = ''.join(['ecmp_utilization/', dir_name.replace('\\', '_').replace('/', '_'), '.json'])
+    # f = open(json_name, mode='w', encoding='utf-8')
+    # f.write(json.dumps(max_utilization_dict))
+    # max_utilization_dict.clear()
+    # f.close()
 
 
 def solve_one_file(graph, sdn_count, sdn_nodes, bandwidth, filename):
@@ -83,7 +95,7 @@ if __name__ == "__main__":
         bandwidth[4][9], bandwidth[5][6], bandwidth[6][7], bandwidth[6][8], bandwidth[7][8], bandwidth[8][9], \
         bandwidth[9][10], bandwidth[10][11] = [9920000] * 14
     bandwidth[3][10] = 2480000
-    sdn_count = 12
+    sdn_count = 2
     sdn_nodes = []
     max_direct_link = 0
     for i in range(sdn_count):
@@ -100,8 +112,8 @@ if __name__ == "__main__":
                     sdn_node = j
         sdn_nodes.append(sdn_node)
         max_direct_link = 0
-    sdn_nodes = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
-    # calc_normal_utilization(graph, sdn_count, sdn_nodes, bandwidth) # 计算所有流量的链路利用率
+    sdn_nodes = [3, 10]
+    # calc_normal_utilization(graph, sdn_count, sdn_nodes, bandwidth)  # 计算所有流量的链路利用率
     # "TM-2004-06-02-1815.xml": 1.117167215658603,
-    # solve_one_file(graph, sdn_count, sdn_nodes, bandwidth, "abilene/TM/2004/06/TM-2004-06-02-1815.xml")
-    optimize_link_utilization(graph, sdn_count, sdn_nodes, bandwidth, '04', 'ecmp_utilization/abilene_TM_2004_04.json')
+    solve_one_file(graph, sdn_count, sdn_nodes, bandwidth, "abilene/TM/2004/04/TM-2004-04-08-1630.xml")
+    # optimize_link_utilization(graph, sdn_count, sdn_nodes, bandwidth, '04', 'ecmp_utilization/abilene_TM_2004_04.json')

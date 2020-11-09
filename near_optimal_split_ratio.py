@@ -38,7 +38,7 @@ def execute(dag, topological_sorted_nodes, traffic, bandwidth, sdn_nodes):
             chrom.clear()
     if len(initChrom) == 0:
         # 所有sdn节点都只有一条出口链路，直接根据ecmp规则仿真打流，并计算此时的链路利用情况
-        print('场景1：所有sdn节点都只有一条出链路，按照ecmp规则流量仿真')
+        # print('场景1：所有sdn节点都只有一条出链路，按照ecmp规则流量仿真')
         return problem.route_flow(None)
     else:
         print('场景2：sdn节点最优分流比例进化算法开始....')
@@ -48,14 +48,37 @@ def execute(dag, topological_sorted_nodes, traffic, bandwidth, sdn_nodes):
         myAlgorithm.MAXGEN = 80
         myAlgorithm.drawing = 0
         NDSet = myAlgorithm.run(prophetPop)
-        # 返回子问题多目标优化的近似最优解，难点：从进化算法得出的帕累托非支配解中选择最想要的点，(两个目标的权重选择策略)
-        # 看优化重心在最小的最大链路利用率，还是最小剩余链路带宽方差
-        optimal_solution_weight = [1, 0]
-        # 返回加权最小值对应的解
-        weighted_NDSet = NDSet.ObjV[:, 0] * optimal_solution_weight[0] + NDSet.ObjV[:, 1] * optimal_solution_weight[1]
-        near_optimal_bandwidth_used = problem.route_flow(NDSet.Phen[np.argmin(weighted_NDSet)])
-        print('加权后近似最优解:', NDSet.Phen[np.argmin(weighted_NDSet)])
+        return build_result_information(NDSet, problem, dag, topological_sorted_nodes[-1], True)
+
+
+def build_result_information(NDSet, problem, dag, target_node, do_print):
+    """
+    返回子问题多目标优化的近似最优解，难点：从进化算法得出的帕累托非支配解中选择最想要的点，(两个目标的权重选择策略)
+    看优化重心在最小的最大链路利用率，还是最小剩余链路带宽方差
+    :param NDSet: 解集
+    :param problem: 问题实体
+    :param dag: 有向无环图
+    :param target_node: 目标节点
+    :param do_print 是否打印结果
+    :return: 最优解
+    """
+    optimal_solution_weight = [1, 0]
+    weighted_NDSet = NDSet.ObjV[:, 0] * optimal_solution_weight[0] + NDSet.ObjV[:, 1] * optimal_solution_weight[1]
+    near_optimal_bandwidth_used = problem.route_flow(NDSet.Phen[np.argmin(weighted_NDSet)])
+    if not do_print:
         return near_optimal_bandwidth_used
+    node_count = len(dag)
+    near_opt_result_info = '加权后的解: \n'
+    start_index = 0
+    for sdn_node in problem.sdn_node_link_count.keys():
+        length = problem.sdn_node_link_count[sdn_node]
+        curr_sdn_node_info = 'sdn节点: %d, 目标节点: %d, 下一跳列表: %s, 加权后近似最优解: %s\n' \
+                             % (sdn_node, target_node, [i for i in range(node_count) if 0 < dag[sdn_node][i] < max_val],
+                                NDSet.Phen[np.argmin(weighted_NDSet)][start_index:start_index + length])
+        start_index += length
+        near_opt_result_info += curr_sdn_node_info
+    print(near_opt_result_info)
+    return near_optimal_bandwidth_used
 
 
 class NearOptimalSplitRatioProblem(ea.Problem):

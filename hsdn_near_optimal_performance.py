@@ -83,6 +83,8 @@ class SOHybridNetTEOptimizeProblem(ea.Problem):
             # Dijkstra算法对每个顶点计算最短链路
             shortest_path_list = [gu.dijkstra_alg(filled_weight_list, i) for i in range(self.node_size)]
             for i in range(self.node_size):
+                if i != 10:
+                    continue
                 # 先将每个节点看成传统节点，以每个顶点为目标节点，构建有向无环图
                 legacy_node_dag = gu.build_dag(filled_weight_list, i, shortest_path_list)
                 # 针对每一个顶点的有向无环图查找sdn节点，增加可用链路并验证环路
@@ -92,11 +94,11 @@ class SOHybridNetTEOptimizeProblem(ea.Problem):
                 #       near_optimal_bandwidth_used)
                 total_bandwidth_used = near_optimal_bandwidth_used + total_bandwidth_used
             max_utilization_formula_val = calculator.calc_utilization_formula(self.band_width,
-                                                                              total_bandwidth_used, True)
+                                                                              total_bandwidth_used, False)
             min_variance = calculator.calc_remaining_bandwidth_variance(self.band_width, total_bandwidth_used)
             obj_val_list.append([max_utilization_formula_val, min_variance])
-            max_utilization = calculator.calc_max_utilization(self.band_width, total_bandwidth_used)
-            return max_utilization
+            max_utilization, max_x_index, max_y_index = calculator.calc_max_utilization(self.band_width, total_bandwidth_used)
+            return max_utilization, max_x_index, max_y_index
             # print(total_bandwidth_used)
             # print("target_one: " + str(max_utilization_formula_val) + " min_variance: " + str(min_variance))
 
@@ -108,7 +110,7 @@ class SOHybridNetTEOptimizeProblem(ea.Problem):
         pop_size = len(pop_values)
         obj_val_list = np.zeros([pop_size, self.M])
         start_time = time.time()
-        with ProcessPoolExecutor(max_workers=3) as executor:
+        with ProcessPoolExecutor(max_workers=2) as executor:
             for index, result in zip(range(pop_size), executor.map(self.solve_one_pop, pop_values)):
                 obj_val_list[index] = result
         # print('计算一个种群总耗时:{}'.format(time.time() - start_time))
@@ -123,7 +125,7 @@ class SOHybridNetTEOptimizeProblem(ea.Problem):
         total_bandwidth_used = np.zeros([self.node_size, self.node_size])
         # Dijkstra算法对每个顶点计算最短链路
         shortest_path_list = [gu.dijkstra_alg(filled_weight_list, i) for i in range(self.node_size)]
-        with ProcessPoolExecutor(max_workers=4) as executor:
+        with ProcessPoolExecutor(max_workers=2) as executor:
             jobs = []
             for index in range(self.node_size):
                 jobs.append(executor.submit(self.solve_sub_problem_one_node, index, filled_weight_list,

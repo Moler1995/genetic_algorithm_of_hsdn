@@ -17,7 +17,7 @@ def calc_utilization_formula(total_band_width, used_bandwidth, do_print=False):
     utilization_matrix = used_bandwidth / filled_bandwidth
     if do_print:
         print(utilization_matrix)
-        print(np.max(utilization_matrix))
+        # print(np.max(utilization_matrix))
     # max_utilization = np.max(utilization_matrix)
     max_x_index, max_y_index = np.unravel_index(np.argmax(utilization_matrix), utilization_matrix.shape)
     # max_utilization_bandwidth_used = used_bandwidth[max_x_index][max_y_index]
@@ -54,7 +54,8 @@ def calc_max_utilization(total_band_width, used_bandwidth):
     filled_bandwidth[filled_bandwidth == 0.0] = max_val
     utilization_matrix = used_bandwidth / filled_bandwidth
     max_utilization = np.max(utilization_matrix)
-    return max_utilization
+    max_x_index, max_y_index = np.unravel_index(np.argmax(utilization_matrix), utilization_matrix.shape)
+    return max_utilization, max_x_index, max_y_index
 
 
 def calc_remaining_bandwidth_variance(total_band_width, used_bandwidth):
