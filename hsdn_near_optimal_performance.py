@@ -83,8 +83,6 @@ class SOHybridNetTEOptimizeProblem(ea.Problem):
             # Dijkstra算法对每个顶点计算最短链路
             shortest_path_list = [gu.dijkstra_alg(filled_weight_list, i) for i in range(self.node_size)]
             for i in range(self.node_size):
-                if i != 10:
-                    continue
                 # 先将每个节点看成传统节点，以每个顶点为目标节点，构建有向无环图
                 legacy_node_dag = gu.build_dag(filled_weight_list, i, shortest_path_list)
                 # 针对每一个顶点的有向无环图查找sdn节点，增加可用链路并验证环路

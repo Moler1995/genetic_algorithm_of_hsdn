@@ -16,7 +16,7 @@ num_to_city_dict = {2: "ATLA-M5", 3: "ATLAng", 11: "CHINng", 8: "DNVRng", 4: "HS
 
 
 def calc_normal_utilization(graph, sdn_count, sdn_nodes, bandwidth):
-    exclude_dir = ['03', '05', '06', '07', '08', '09']
+    exclude_dir = []
     for month_dir in os.listdir(base_dir):
         if month_dir in exclude_dir:
             continue
@@ -43,11 +43,11 @@ def solve_segments(dir_name, graph, sdn_count, sdn_nodes, bandwidth, worker_coun
                     congestion_times_dict[cong_key] = congestion_times_dict[cong_key] + 1
                 else:
                     congestion_times_dict[cong_key] = 1
-    # json_name = ''.join(['ecmp_utilization/', dir_name.replace('\\', '_').replace('/', '_'), '.json'])
-    # f = open(json_name, mode='w', encoding='utf-8')
-    # f.write(json.dumps(max_utilization_dict))
-    # max_utilization_dict.clear()
-    # f.close()
+    json_name = ''.join(['ecmp_utilization/', dir_name.replace('\\', '_').replace('/', '_'), '.json'])
+    f = open(json_name, mode='w', encoding='utf-8')
+    f.write(json.dumps(max_utilization_dict))
+    max_utilization_dict.clear()
+    f.close()
 
 
 def solve_one_file(graph, sdn_count, sdn_nodes, bandwidth, filename):
@@ -115,5 +115,5 @@ if __name__ == "__main__":
     sdn_nodes = [3, 10]
     # calc_normal_utilization(graph, sdn_count, sdn_nodes, bandwidth)  # 计算所有流量的链路利用率
     # "TM-2004-06-02-1815.xml": 1.117167215658603,
-    solve_one_file(graph, sdn_count, sdn_nodes, bandwidth, "abilene/TM/2004/04/TM-2004-04-08-1630.xml")
+    solve_one_file(graph, sdn_count, sdn_nodes, bandwidth, "abilene/TM/2004/05/TM-2004-05-14-2130.xml")
     # optimize_link_utilization(graph, sdn_count, sdn_nodes, bandwidth, '04', 'ecmp_utilization/abilene_TM_2004_04.json')
