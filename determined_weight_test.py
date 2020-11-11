@@ -13,6 +13,8 @@ congestion_times_dict = {}
 base_dir = "abilene/TM/2004"
 num_to_city_dict = {2: "ATLA-M5", 3: "ATLAng", 11: "CHINng", 8: "DNVRng", 4: "HSTNng", 10: "IPLSng",
                     9: "KSCYng", 5: "LOSAng", 0: "NYCMng", 6: "SNVAng", 7: "STTLng", 1: "WASHng"}
+city_to_num_dict = {"ATLA-M5": 2, "ATLAng": 3, "CHINng": 11, "DNVRng": 8, "HSTNng": 4, "IPLSng": 10,
+                    "KSCYng": 9, "LOSAng": 5, "NYCMng": 0, "SNVAng": 6, "STTLng": 7, "WASHng": 1}
 
 
 def calc_normal_utilization(graph, sdn_count, sdn_nodes, bandwidth):
@@ -43,7 +45,7 @@ def solve_segments(dir_name, graph, sdn_count, sdn_nodes, bandwidth, worker_coun
                     congestion_times_dict[cong_key] = congestion_times_dict[cong_key] + 1
                 else:
                     congestion_times_dict[cong_key] = 1
-    json_name = ''.join(['ecmp_utilization/', dir_name.replace('\\', '_').replace('/', '_'), '.json'])
+    json_name = ''.join(['ecmp_utilization/add_weight/', dir_name.replace('\\', '_').replace('/', '_'), '.json'])
     f = open(json_name, mode='w', encoding='utf-8')
     f.write(json.dumps(max_utilization_dict))
     max_utilization_dict.clear()
@@ -61,6 +63,7 @@ def solve_one_file(graph, sdn_count, sdn_nodes, bandwidth, filename):
                        problem.ranges[:, sdn_count:], problem.borders[:, sdn_count:])  # 创建区域描述器
     Fields = [Field1, Field2]
     weight_size = int(np.sum(graph == 1) / 2)
+    # weights = [233, 846, 1, 1176, 1893, 366, 861, 1295, 2095, 902, 639, 587, 548, 700, 260]
     weights = [1] * weight_size
     pop = ea.PsyPopulation(Encodings, Fields, 1, Phen=np.array([sdn_nodes + weights]))
 
@@ -112,8 +115,8 @@ if __name__ == "__main__":
                     sdn_node = j
         sdn_nodes.append(sdn_node)
         max_direct_link = 0
-    sdn_nodes = [3, 10]
+    sdn_nodes = [3, 4]
     # calc_normal_utilization(graph, sdn_count, sdn_nodes, bandwidth)  # 计算所有流量的链路利用率
     # "TM-2004-06-02-1815.xml": 1.117167215658603,
-    solve_one_file(graph, sdn_count, sdn_nodes, bandwidth, "abilene/TM/2004/05/TM-2004-05-14-2130.xml")
+    solve_one_file(graph, sdn_count, sdn_nodes, bandwidth, "abilene/TM/2004/09/TM-2004-09-01-0620.xml")
     # optimize_link_utilization(graph, sdn_count, sdn_nodes, bandwidth, '04', 'ecmp_utilization/abilene_TM_2004_04.json')

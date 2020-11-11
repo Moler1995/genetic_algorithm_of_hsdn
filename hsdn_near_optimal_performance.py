@@ -92,14 +92,14 @@ class SOHybridNetTEOptimizeProblem(ea.Problem):
                 #       near_optimal_bandwidth_used)
                 total_bandwidth_used = near_optimal_bandwidth_used + total_bandwidth_used
             max_utilization_formula_val = calculator.calc_utilization_formula(self.band_width,
-                                                                              total_bandwidth_used, False)
+                                                                              total_bandwidth_used, True)
             min_variance = calculator.calc_remaining_bandwidth_variance(self.band_width, total_bandwidth_used)
             obj_val_list.append([max_utilization_formula_val, min_variance])
             max_utilization, max_x_index, max_y_index = calculator.calc_max_utilization(self.band_width, total_bandwidth_used)
+            print(self.xml_name + ": ", max_utilization)
+            print("target_one: " + str(max_utilization_formula_val) + " min_variance: " + str(min_variance))
             return max_utilization, max_x_index, max_y_index
             # print(total_bandwidth_used)
-            # print("target_one: " + str(max_utilization_formula_val) + " min_variance: " + str(min_variance))
-
         pop.ObjV = np.hstack(obj_val_list)
 
     def aimFunc(self, pop):
@@ -108,7 +108,7 @@ class SOHybridNetTEOptimizeProblem(ea.Problem):
         pop_size = len(pop_values)
         obj_val_list = np.zeros([pop_size, self.M])
         start_time = time.time()
-        with ProcessPoolExecutor(max_workers=2) as executor:
+        with ProcessPoolExecutor(max_workers=1) as executor:
             for index, result in zip(range(pop_size), executor.map(self.solve_one_pop, pop_values)):
                 obj_val_list[index] = result
         # print('计算一个种群总耗时:{}'.format(time.time() - start_time))
