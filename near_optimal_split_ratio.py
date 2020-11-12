@@ -7,9 +7,14 @@ import calculator
 max_val = float('inf')
 
 
-def execute(dag, topological_sorted_nodes, traffic, bandwidth, sdn_nodes):
+def execute(dag, topological_sorted_nodes, traffic, bandwidth, sdn_nodes, scene_determined_split_ratio=False):
     problem = NearOptimalSplitRatioProblem(dag=dag, topological_sorted_nodes=topological_sorted_nodes,
                                            traffic=traffic, sdn_nodes=sdn_nodes, band_width=bandwidth)
+    if len(problem.sdn_node_link_count) == 0:
+        return problem.route_flow(None)
+    if scene_determined_split_ratio:
+        ratio_matrix = __determined_split_ratio(dag, sdn_nodes, problem, bandwidth)
+        return problem.route_flow(ratio_matrix)
     Encoding = "RI"
     NIND = 100
     Field = ea.crtfld(Encoding, problem.varTypes, problem.ranges, problem.borders)
@@ -18,14 +23,49 @@ def execute(dag, topological_sorted_nodes, traffic, bandwidth, sdn_nodes):
     myAlgorithm.mutOper.F = 0.74
     myAlgorithm.recOper.XOVR = 0.65
     # 自定义初始种群,计算目标函数值和约束
-    initChrom = []
+    initChrom = __init_pre_chrom(NIND, sdn_nodes, problem)
+    print('场景2：sdn节点最优分流比例进化算法开始....')
     unit_ratio = 1 / NIND
+    prophetPop = ea.Population(Encoding, Field, NIND,
+                               np.array(initChrom) * unit_ratio, Phen=np.array(initChrom) * unit_ratio)
+    problem.aimFunc(prophetPop)
+    myAlgorithm.MAXGEN = 70
+    myAlgorithm.drawing = 0
+    NDSet = myAlgorithm.run(prophetPop)
+    return build_result_information(NDSet, problem, dag, topological_sorted_nodes[-1], True)
+
+
+def __determined_split_ratio(dag, sdn_nodes, problem, bandwidth):
+    ratio_matrix = []
+    for sdn_node in sdn_nodes:
+        if sdn_node not in problem.sdn_node_link_count.keys():
+            continue
+        node_total_bandwidth = 0
+        for tg_node in range(len(dag)):
+            if 0 < dag[sdn_node][tg_node] < max_val:
+                node_total_bandwidth += bandwidth[sdn_node][tg_node] + bandwidth[tg_node][sdn_node]
+        for tg_node in range(len(dag)):
+            if 0 < dag[sdn_node][tg_node] < max_val:
+                ratio_matrix.append((bandwidth[sdn_node][tg_node] + bandwidth[tg_node][sdn_node]) / node_total_bandwidth)
+    return np.array(ratio_matrix)
+
+
+def __init_pre_chrom(NIND, sdn_nodes, problem):
+    """
+    自定义初始种群,计算目标函数值和约束
+    :param NIND:
+    :param sdn_nodes:
+    :param problem:
+    :return:
+    """
+    initChrom = []
     chrom = []
     for j in range(0, NIND):
         start_index = 0
         for sdn_node in sdn_nodes:
             if sdn_node not in problem.sdn_node_link_count.keys():
                 continue
+            # 到这里直连链路数量一定是大于等于2的
             link_count = problem.sdn_node_link_count[sdn_node]
             for index in range(link_count):
                 if index == link_count - 1:
@@ -36,19 +76,7 @@ def execute(dag, topological_sorted_nodes, traffic, bandwidth, sdn_nodes):
         if len(chrom) > 0:
             initChrom.append(chrom.copy())
             chrom.clear()
-    if len(initChrom) == 0:
-        # 所有sdn节点都只有一条出口链路，直接根据ecmp规则仿真打流，并计算此时的链路利用情况
-        print('场景1：所有sdn节点都只有一条出链路，按照ecmp规则流量仿真')
-        return problem.route_flow(None)
-    else:
-        print('场景2：sdn节点最优分流比例进化算法开始....')
-        prophetPop = ea.Population(Encoding, Field, NIND,
-                                   np.array(initChrom) * unit_ratio, Phen=np.array(initChrom) * unit_ratio)
-        problem.aimFunc(prophetPop)
-        myAlgorithm.MAXGEN = 70
-        myAlgorithm.drawing = 0
-        NDSet = myAlgorithm.run(prophetPop)
-        return build_result_information(NDSet, problem, dag, topological_sorted_nodes[-1], True)
+    return initChrom
 
 
 def build_result_information(NDSet, problem, dag, target_node, do_print):

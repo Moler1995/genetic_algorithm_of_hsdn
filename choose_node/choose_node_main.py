@@ -1,9 +1,36 @@
 import geatpy as ea
 import numpy as np
 import project_xml_reader
-from choose_node.determined_weight_optimize import NearOptLinkParamsWithDeterminedWeight
+from choose_node.determined_weight_optimize import NearOptUpgradeStrategyWithDeterminedWeight
+from scipy.special import comb
+import json
+import os
 
 max_val = float('inf')
+
+
+def do_verify_result(problem, NDSet):
+    result_weight = [1, 0]
+    sdn_nodes_list = NDSet.Phen
+    optimal_solution = []
+    global_min = max_val
+    for sdn_nodes in sdn_nodes_list:
+        performance = problem.solve_one_pop(sdn_nodes, True)
+        curr_min = performance[0] * result_weight[0] + performance[1] * result_weight[1]
+        if curr_min < global_min:
+            optimal_solution = sdn_nodes
+    print(optimal_solution)
+
+
+def get_traffics():
+    json_file = open("../ecmp_utilization/add_weight/abilene_TM_2004_05.json")
+    base_dir = "../abilene/TM/2004/05/"
+    link_max_utilization_json = json.load(json_file, object_hook=dict)
+    traffics = []
+    for file in link_max_utilization_json.keys():
+        if link_max_utilization_json[file] >= 0.7:
+            traffics.append(project_xml_reader.parse_traffics(os.path.join(base_dir, file)))
+    return traffics
 
 
 if __name__ == "__main__":
@@ -23,19 +50,22 @@ if __name__ == "__main__":
         bandwidth[4][9], bandwidth[5][6], bandwidth[6][7], bandwidth[6][8], bandwidth[7][8], bandwidth[8][9], \
         bandwidth[9][10], bandwidth[10][11] = [9920000] * 14
     bandwidth[3][10] = 2480000
-    sdn_count = 3
-    traffic = project_xml_reader.parse_traffics("abilene/TM/2004/09/TM-2004-09-01-0620.xml")
+    # traffic = project_xml_reader.parse_traffics("../abilene/TM/2004/09/TM-2004-09-01-0620.xml")
     # 区域描述
-    problem = NearOptLinkParamsWithDeterminedWeight(graph, sdn_count, traffic, bandwidth, "TM-2004-09-01-0620.xml")
+    problem = NearOptUpgradeStrategyWithDeterminedWeight(graph, get_traffics(), bandwidth)
     Encoding = 'P'
     Field = ea.crtfld(Encoding, problem.varTypes, problem.ranges, problem.borders)  # 创建区域描述器
-    sdn_nodes = [3, 4, 11]
     NIND = 50
-    myAlgorithm = ea.moea_NSGA3_DE_templet(problem, Encoding)
     population = ea.Population(Encoding, Field, NIND)
-    myAlgorithm.mutOper.F = 0.74
-    myAlgorithm.recOper.XOVR = 0.65
-    myAlgorithm.MAXGEN = 40
+    myAlgorithm = ea.moea_NSGA3_templet(problem, population)
+    myAlgorithm.XOVR = 0.65
+    myAlgorithm.Pm = 0.7
+    myAlgorithm.selFunc = 'tour'
+    myAlgorithm.MAXGEN = 30
     myAlgorithm.drawing = 2
-    myAlgorithm.run()
-    pop = ea.Population(Encoding, Field, 1, Phen=np.array([sdn_nodes]))
+    NDSet = myAlgorithm.run()
+    do_verify_result(problem, NDSet)
+    NDSet.save()
+    # sdn_nodes = [3]
+    # pop = ea.Population(Encoding, Field, 1, Phen=np.array([sdn_nodes]))
+    # problem.aimFunc(pop)
