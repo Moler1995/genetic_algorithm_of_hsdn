@@ -64,9 +64,11 @@ class NearOptUpgradeStrategyWithDeterminedWeight(ea.Problem):
         traffic_count = len(self.traffics)
         total_mean_utilization_formula = 0
         total_mean_variance = 0
+        total_mean_max_utilization = 0
         for traffic in self.traffics:
             mean_traffic_formula_val = 0
             mean_variance = 0
+            mean_max_utilization = 0
             for i in range(self.node_count):
                 # 计算渐进升级策略升级过程中应对历史数据的链路性能平均表现
                 sdn_nodes = sdn_node_perm[:i]
@@ -85,13 +87,17 @@ class NearOptUpgradeStrategyWithDeterminedWeight(ea.Problem):
                 utilization_formula_val = calculator.calc_utilization_formula(self.band_width,
                                                                               total_bandwidth_used, do_print)
                 variance = calculator.calc_remaining_bandwidth_variance(self.band_width, total_bandwidth_used)
-                max_utilization = calculator.calc_max_utilization(self.band_width, total_bandwidth_used)
-                print("sdn nodes: ", sdn_nodes, ": ", max_utilization)
-                print("target_one: " + str(utilization_formula_val) + " min_variance: " + str(variance))
+                max_utilization = calculator.calc_max_utilization(self.band_width, total_bandwidth_used)[0]
+                # print("sdn nodes: ", sdn_nodes, ": ", max_utilization)
+                # print("target_one: " + str(utilization_formula_val) + " min_variance: " + str(variance))
                 mean_traffic_formula_val += utilization_formula_val / self.node_count
                 mean_variance += variance / self.node_count
+                mean_max_utilization += max_utilization / self.node_count
             total_mean_utilization_formula += mean_traffic_formula_val / traffic_count
             total_mean_variance += mean_variance / traffic_count
+            total_mean_max_utilization += mean_max_utilization / traffic_count
+        print("sdn_node_permutation: ", sdn_node_perm, "result: ", (total_mean_utilization_formula, total_mean_variance,
+                                                                    total_mean_max_utilization))
         # print('计算一个个体的总耗时:{}'.format(time.time() - start_time))
         return [total_mean_utilization_formula, total_mean_variance]
 
