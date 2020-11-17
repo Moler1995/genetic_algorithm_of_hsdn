@@ -23,7 +23,7 @@ def calc_normal_utilization(graph, sdn_count, sdn_nodes, bandwidth):
         if month_dir in exclude_dir:
             continue
         month_dir_abs_path = os.path.join(base_dir, month_dir)
-        solve_segments(month_dir_abs_path, graph, sdn_count, sdn_nodes, bandwidth, 4)
+        solve_segments(month_dir_abs_path, graph, sdn_count, sdn_nodes, bandwidth, 2)
     print(congestion_times_dict)
 
 
@@ -45,7 +45,7 @@ def solve_segments(dir_name, graph, sdn_count, sdn_nodes, bandwidth, worker_coun
                     congestion_times_dict[cong_key] = congestion_times_dict[cong_key] + 1
                 else:
                     congestion_times_dict[cong_key] = 1
-    json_name = ''.join(['ecmp_utilization/add_weight/', dir_name.replace('\\', '_').replace('/', '_'), '.json'])
+    json_name = ''.join(['ecmp_utilization/upgrade_strategy_4_nodes/', dir_name.replace('\\', '_').replace('/', '_'), '.json'])
     f = open(json_name, mode='w', encoding='utf-8')
     f.write(json.dumps(max_utilization_dict))
     max_utilization_dict.clear()
@@ -67,7 +67,7 @@ def solve_one_file(graph, sdn_count, sdn_nodes, bandwidth, filename):
     weights = [1] * weight_size
     pop = ea.PsyPopulation(Encodings, Fields, 1, Phen=np.array([sdn_nodes + weights]))
 
-    return problem.aimFunc(pop)
+    return problem.aimFunc1(pop)
 
 
 def optimize_link_utilization(graph, sdn_count, sdn_nodes, bandwidth, month_index, json_name, threshold=0.5):
@@ -98,25 +98,10 @@ if __name__ == "__main__":
         bandwidth[4][9], bandwidth[5][6], bandwidth[6][7], bandwidth[6][8], bandwidth[7][8], bandwidth[8][9], \
         bandwidth[9][10], bandwidth[10][11] = [9920000] * 14
     bandwidth[3][10] = 2480000
-    sdn_count = 2
-    sdn_nodes = []
-    max_direct_link = 0
-    for i in range(sdn_count):
-        sdn_node = 0
-        for j in range(len(graph)):
-            if j in sdn_nodes:
-                continue
-            direct_link = np.sum(graph[j] == 1)
-            if direct_link > max_direct_link:
-                max_direct_link = direct_link
-                sdn_node = j
-            elif direct_link == max_direct_link:
-                if np.sum(bandwidth[j]) > np.sum(bandwidth[sdn_node]):
-                    sdn_node = j
-        sdn_nodes.append(sdn_node)
-        max_direct_link = 0
-    sdn_nodes = [3, 4]
-    # calc_normal_utilization(graph, sdn_count, sdn_nodes, bandwidth)  # 计算所有流量的链路利用率
+    sdn_count = 4
+    # [11, 10, 9, 6, 3, 8, 1, 7, 5, 4, 0, 2]
+    sdn_nodes = [11, 10, 9, 6]
+    calc_normal_utilization(graph, sdn_count, sdn_nodes, bandwidth)  # 计算所有流量的链路利用率
     # "TM-2004-06-02-1815.xml": 1.117167215658603,
-    solve_one_file(graph, sdn_count, sdn_nodes, bandwidth, "abilene/TM/2004/09/TM-2004-09-01-0620.xml")
+    # solve_one_file(graph, sdn_count, sdn_nodes, bandwidth, "abilene/TM/2004/09/TM-2004-09-01-0620.xml")
     # optimize_link_utilization(graph, sdn_count, sdn_nodes, bandwidth, '04', 'ecmp_utilization/abilene_TM_2004_04.json')

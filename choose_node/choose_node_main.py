@@ -2,34 +2,39 @@ import geatpy as ea
 import numpy as np
 import project_xml_reader
 from choose_node.determined_weight_optimize import NearOptUpgradeStrategyWithDeterminedWeight
-from scipy.special import comb
 import json
 import os
 
 max_val = float('inf')
+f = open("5月优化9月数据.txt", 'w', encoding="utf-8")
 
 
-def do_verify_result(problem, NDSet):
+def do_verify_result(problem, perm_list):
     result_weight = [1, 0]
-    sdn_nodes_list = NDSet.Phen
     optimal_solution = []
     global_min = max_val
-    for sdn_nodes in sdn_nodes_list:
+    for sdn_nodes in perm_list:
         performance = problem.solve_one_pop(sdn_nodes, True)
         curr_min = performance[0] * result_weight[0] + performance[1] * result_weight[1]
         if curr_min < global_min:
             optimal_solution = sdn_nodes
-    print(optimal_solution)
+    print(optimal_solution, file=f)
 
 
-def get_traffics():
-    json_file = open("../ecmp_utilization/add_weight/abilene_TM_2004_05.json")
-    base_dir = "../abilene/TM/2004/05/"
+def get_traffics(threshold=0.7):
+    json_file = open("../ecmp_utilization/add_weight/abilene_TM_2004_09.json")
+    base_dir = "../abilene/TM/2004/09/"
     link_max_utilization_json = json.load(json_file, object_hook=dict)
     traffics = []
+    origin_mean_utilization = 0
+    occurred_times = 0
     for file in link_max_utilization_json.keys():
-        if link_max_utilization_json[file] >= 0.7:
+        if link_max_utilization_json[file] >= threshold:
+            origin_mean_utilization += link_max_utilization_json[file]
+            occurred_times += 1
             traffics.append(project_xml_reader.parse_traffics(os.path.join(base_dir, file)))
+    origin_mean_utilization /= occurred_times
+    print("origin mean utilization: ", origin_mean_utilization, file=f)
     return traffics
 
 
@@ -63,9 +68,11 @@ if __name__ == "__main__":
     myAlgorithm.selFunc = 'tour'
     myAlgorithm.MAXGEN = 30
     myAlgorithm.drawing = 2
-    NDSet = myAlgorithm.run()
-    do_verify_result(problem, NDSet)
-    NDSet.save()
+    # NDSet = myAlgorithm.run()
+    perm_list = np.array([[11, 10, 9, 6, 3, 8, 1, 7, 5, 4, 0, 2]])
+    # print(perm_list)
+    do_verify_result(problem, perm_list)
+    # NDSet.save()
     # sdn_nodes = [3]
     # pop = ea.Population(Encoding, Field, 1, Phen=np.array([sdn_nodes]))
     # problem.aimFunc(pop)
