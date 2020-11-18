@@ -6,7 +6,7 @@ color_warehouse = ['blue', 'green', 'blueviolet']
 
 
 def plot_training_result(month_index):
-    json_file = "ecmp_utilization/add_weight/abilene_TM_2004_%s.json" % month_index
+    json_file = "utilization/add_weight/abilene_TM_2004_%s.json" % month_index
     f = open(json_file, 'r', encoding="utf-8")
     result_dict = json.load(f, object_hook=dict)
     f.close()
@@ -28,14 +28,14 @@ def plot_training_result(month_index):
     plt.xlabel("date")
     plt.ylabel("max_utilization")
     plt.ylim((0, 1))
-    plt.savefig("./charts/origin/%s.png" % month_index)
+    plt.savefig("./charts/individual/origin/%s.png" % month_index)
 
 
 def plot_utilization_compared_result(month_index, optimize_result_count):
-    json_file_origin = "ecmp_utilization/add_weight/abilene_TM_2004_%s.json" % month_index
+    json_file_origin = "utilization/add_weight/abilene_TM_2004_%s.json" % month_index
     optimized_results = []
     for i in range(optimize_result_count):
-        json_file_optimized = "ecmp_utilization/upgrade_strategy_%d_nodes/abilene_TM_2004_%s.json" % ((2 + i), month_index)
+        json_file_optimized = "utilization/upgrade_strategy_%d_nodes/abilene_TM_2004_%s.json" % ((2 + i), month_index)
         f = open(json_file_optimized, 'r', encoding='utf-8')
         optimized_result_dict = json.load(f, object_hook=dict)
         f.close()
@@ -66,12 +66,12 @@ def plot_utilization_compared_result(month_index, optimize_result_count):
     plt.ylabel("max_utilization")
     plt.ylim((0, 1))
     plt.legend(fontsize=10)
-    # plt.savefig("./charts/compare_3_upgraded/%s.png" % month_index)
+    # plt.savefig("./charts/compare/compare_3_upgraded/%s.png" % month_index)
     plt.show()
 
 
 if __name__ == "__main__":
-    plot_utilization_compared_result("09", 3)
+    plot_utilization_compared_result("04", 2)
     months = ["03", "04", "05", "06", "07", "08", "09"]
     # for month in months:
     #     plot_training_result(month)

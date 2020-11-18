@@ -45,7 +45,7 @@ def solve_segments(dir_name, graph, sdn_count, sdn_nodes, bandwidth, worker_coun
                     congestion_times_dict[cong_key] = congestion_times_dict[cong_key] + 1
                 else:
                     congestion_times_dict[cong_key] = 1
-    json_name = ''.join(['ecmp_utilization/upgrade_strategy_4_nodes/', dir_name.replace('\\', '_').replace('/', '_'), '.json'])
+    json_name = ''.join(['utilization/upgrade_strategy_4_nodes/', dir_name.replace('\\', '_').replace('/', '_'), '.json'])
     f = open(json_name, mode='w', encoding='utf-8')
     f.write(json.dumps(max_utilization_dict))
     max_utilization_dict.clear()
@@ -104,4 +104,4 @@ if __name__ == "__main__":
     calc_normal_utilization(graph, sdn_count, sdn_nodes, bandwidth)  # 计算所有流量的链路利用率
     # "TM-2004-06-02-1815.xml": 1.117167215658603,
     # solve_one_file(graph, sdn_count, sdn_nodes, bandwidth, "abilene/TM/2004/09/TM-2004-09-01-0620.xml")
-    # optimize_link_utilization(graph, sdn_count, sdn_nodes, bandwidth, '04', 'ecmp_utilization/abilene_TM_2004_04.json')
+    # optimize_link_utilization(graph, sdn_count, sdn_nodes, bandwidth, '04', 'utilization/abilene_TM_2004_04.json')

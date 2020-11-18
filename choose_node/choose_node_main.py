@@ -22,7 +22,7 @@ def do_verify_result(problem, perm_list):
 
 
 def get_traffics(threshold=0.7):
-    json_file = open("../ecmp_utilization/add_weight/abilene_TM_2004_09.json")
+    json_file = open("../utilization/add_weight/abilene_TM_2004_09.json")
     base_dir = "../abilene/TM/2004/09/"
     link_max_utilization_json = json.load(json_file, object_hook=dict)
     traffics = []
