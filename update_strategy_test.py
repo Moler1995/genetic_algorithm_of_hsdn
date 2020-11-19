@@ -9,6 +9,8 @@ import json
 
 max_val = float('inf')
 max_utilization_dict = {}
+utilization_func_val_dict = {}
+variance_dict = {}
 congestion_times_dict = {}
 base_dir = "abilene/TM/2004"
 num_to_city_dict = {2: "ATLA-M5", 3: "ATLAng", 11: "CHINng", 8: "DNVRng", 4: "HSTNng", 10: "IPLSng",
@@ -31,25 +33,42 @@ def solve_segments(dir_name, graph, sdn_count, sdn_nodes, bandwidth, worker_coun
     print(dir_name)
     global max_utilization_dict
     global congestion_times_dict
+    global utilization_func_val_dict
+    global variance_dict
     with ProcessPoolExecutor(max_workers=worker_count) as executor:
         jobs = {}
         for traffic_xml in os.listdir(dir_name):
             jobs[traffic_xml] = executor.submit(solve_one_file, graph, sdn_count, sdn_nodes, bandwidth,
                                                 os.path.join(dir_name, traffic_xml))
         for job_key in jobs.keys():
-            utilization, max_x, max_y = jobs[job_key].result()
+            utilization, max_x, max_y, max_utilization_formula_val, min_variance = jobs[job_key].result()
             max_utilization_dict[job_key] = utilization
+            utilization_func_val_dict[job_key] = max_utilization_formula_val
+            variance_dict[job_key] = min_variance
             cong_key = num_to_city_dict[max_x] + "->" + num_to_city_dict[max_y]
             if utilization > 0.9:
                 if cong_key in congestion_times_dict.keys():
                     congestion_times_dict[cong_key] = congestion_times_dict[cong_key] + 1
                 else:
                     congestion_times_dict[cong_key] = 1
-    json_name = ''.join(['utilization/upgrade_strategy_4_nodes/', dir_name.replace('\\', '_').replace('/', '_'), '.json'])
-    f = open(json_name, mode='w', encoding='utf-8')
+    utilization_json_name = ''.join(['utilization/upgrade_strategy_12_nodes/',
+                                     dir_name.replace('\\', '_').replace('/', '_'), '.json'])
+    utilization_func_val_json_name = ''.join(['utilization_function_value/upgrade_strategy_12_nodes/',
+                                              dir_name.replace('\\', '_').replace('/', '_'), '.json'])
+    variance_json_name = ''.join(['variance/upgrade_strategy_12_nodes/',
+                                  dir_name.replace('\\', '_').replace('/', '_'), '.json'])
+    f = open(utilization_json_name, mode='w', encoding='utf-8')
     f.write(json.dumps(max_utilization_dict))
-    max_utilization_dict.clear()
     f.close()
+    max_utilization_dict.clear()
+    f = open(utilization_func_val_json_name, mode='w', encoding='utf-8')
+    f.write(json.dumps(utilization_func_val_dict))
+    f.close()
+    utilization_func_val_dict.clear()
+    f = open(variance_json_name, mode='w', encoding='utf-8')
+    f.write(json.dumps(variance_dict))
+    f.close()
+    variance_dict.clear()
 
 
 def solve_one_file(graph, sdn_count, sdn_nodes, bandwidth, filename):
@@ -98,9 +117,9 @@ if __name__ == "__main__":
         bandwidth[4][9], bandwidth[5][6], bandwidth[6][7], bandwidth[6][8], bandwidth[7][8], bandwidth[8][9], \
         bandwidth[9][10], bandwidth[10][11] = [9920000] * 14
     bandwidth[3][10] = 2480000
-    sdn_count = 4
+    sdn_count = 12
     # [11, 10, 9, 6, 3, 8, 1, 7, 5, 4, 0, 2]
-    sdn_nodes = [11, 10, 9, 6]
+    sdn_nodes = [11, 10, 9, 6, 3, 8, 1, 7, 5, 4, 0, 2]
     calc_normal_utilization(graph, sdn_count, sdn_nodes, bandwidth)  # 计算所有流量的链路利用率
     # "TM-2004-06-02-1815.xml": 1.117167215658603,
     # solve_one_file(graph, sdn_count, sdn_nodes, bandwidth, "abilene/TM/2004/09/TM-2004-09-01-0620.xml")

@@ -99,9 +99,9 @@ class SOHybridNetTEOptimizeProblem(ea.Problem):
             max_utilization, max_x_index, max_y_index = calculator.calc_max_utilization(self.band_width, total_bandwidth_used)
             # print(self.xml_name + ": ", max_utilization)
             # print("target_one: " + str(max_utilization_formula_val) + " min_variance: " + str(min_variance))
-            return max_utilization, max_x_index, max_y_index
+            return max_utilization, max_x_index, max_y_index, max_utilization_formula_val, min_variance
             # print(total_bandwidth_used)
-        pop.ObjV = np.hstack(obj_val_list)
+        # pop.ObjV = np.hstack(obj_val_list)
 
     def aimFunc(self, pop):
         pop_values = pop.Phen
