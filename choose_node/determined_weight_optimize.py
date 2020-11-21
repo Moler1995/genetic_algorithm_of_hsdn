@@ -47,7 +47,7 @@ class NearOptUpgradeStrategyWithDeterminedWeight(ea.Problem):
         pop_size = len(pop_values)
         obj_val_list = np.zeros([pop_size, self.M])
         start_time = time.time()
-        with ProcessPoolExecutor(max_workers=4) as executor:
+        with ProcessPoolExecutor(max_workers=10) as executor:
             for index, result in zip(range(pop_size), executor.map(self.solve_one_pop, pop_values)):
                 obj_val_list[index] = result
         # print('计算一个种群总耗时:{}'.format(time.time() - start_time))
@@ -55,6 +55,9 @@ class NearOptUpgradeStrategyWithDeterminedWeight(ea.Problem):
         pop.ObjV = obj_val_list
 
     def solve_one_pop(self, one_pop, do_print=False):
+        """
+        尝试仿真流量计算链路的最大利用率函数和剩余带宽均方差的均值
+        """
         # 给连接图的上半三角填充权重
         start_time = time.time()
         sdn_node_perm = np.array(one_pop).astype(int)

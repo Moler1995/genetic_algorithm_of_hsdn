@@ -6,35 +6,28 @@ import json
 import os
 
 max_val = float('inf')
-f = open("5月优化9月数据.txt", 'w', encoding="utf-8")
 
 
-def do_verify_result(problem, perm_list):
+def do_verify_result(problem, Phen):
     result_weight = [1, 0]
+    sdn_nodes_list = Phen
     optimal_solution = []
     global_min = max_val
-    for sdn_nodes in perm_list:
+    for sdn_nodes in sdn_nodes_list:
         performance = problem.solve_one_pop(sdn_nodes, True)
         curr_min = performance[0] * result_weight[0] + performance[1] * result_weight[1]
         if curr_min < global_min:
             optimal_solution = sdn_nodes
-    print(optimal_solution, file=f)
+    print(optimal_solution)
 
 
-def get_traffics(threshold=0.7):
-    json_file = open("../utilization/add_weight/abilene_TM_2004_09.json")
-    base_dir = "../abilene/TM/2004/09/"
+def get_traffics(json_name, traffic_dir):
+    json_file = open(json_name)
     link_max_utilization_json = json.load(json_file, object_hook=dict)
     traffics = []
-    origin_mean_utilization = 0
-    occurred_times = 0
     for file in link_max_utilization_json.keys():
-        if link_max_utilization_json[file] >= threshold:
-            origin_mean_utilization += link_max_utilization_json[file]
-            occurred_times += 1
-            traffics.append(project_xml_reader.parse_traffics(os.path.join(base_dir, file)))
-    origin_mean_utilization /= occurred_times
-    print("origin mean utilization: ", origin_mean_utilization, file=f)
+        if link_max_utilization_json[file] >= 0.4:
+            traffics.append(project_xml_reader.parse_traffics(os.path.join(traffic_dir, file)))
     return traffics
 
 
@@ -57,7 +50,10 @@ if __name__ == "__main__":
     bandwidth[3][10] = 2480000
     # traffic = project_xml_reader.parse_traffics("../abilene/TM/2004/09/TM-2004-09-01-0620.xml")
     # 区域描述
-    problem = NearOptUpgradeStrategyWithDeterminedWeight(graph, get_traffics(), bandwidth)
+    json_name = "../utilization/add_weight/abilene_TM_2004_05.json"
+    traffic_dir = "../abilene/TM/2004/05/"
+    # 5月份的数据跑的结果[11,10,9,6,3,8,1,7,5,4,0,2]
+    problem = NearOptUpgradeStrategyWithDeterminedWeight(graph, get_traffics(json_name, traffic_dir), bandwidth)
     Encoding = 'P'
     Field = ea.crtfld(Encoding, problem.varTypes, problem.ranges, problem.borders)  # 创建区域描述器
     NIND = 50
@@ -66,13 +62,12 @@ if __name__ == "__main__":
     myAlgorithm.XOVR = 0.65
     myAlgorithm.Pm = 0.7
     myAlgorithm.selFunc = 'tour'
-    myAlgorithm.MAXGEN = 30
-    myAlgorithm.drawing = 2
-    # NDSet = myAlgorithm.run()
-    perm_list = np.array([[11, 10, 9, 6, 3, 8, 1, 7, 5, 4, 0, 2]])
-    # print(perm_list)
-    do_verify_result(problem, perm_list)
-    # NDSet.save()
+    myAlgorithm.MAXGEN = 40
+    myAlgorithm.drawing = 1
+    NDSet = myAlgorithm.run()
+    # solution_to_verify = np.array([[11, 10, 9, 6, 3, 8, 1, 7, 5, 4, 0, 2]])
+    # do_verify_result(problem, solution_to_verify)
+    NDSet.save()
     # sdn_nodes = [3]
     # pop = ea.Population(Encoding, Field, 1, Phen=np.array([sdn_nodes]))
     # problem.aimFunc(pop)
