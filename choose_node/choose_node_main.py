@@ -62,11 +62,11 @@ if __name__ == "__main__":
     myAlgorithm.XOVR = 0.65
     myAlgorithm.Pm = 0.7
     myAlgorithm.selFunc = 'tour'
-    myAlgorithm.MAXGEN = 40
+    myAlgorithm.MAXGEN = 50
     myAlgorithm.drawing = 1
     NDSet = myAlgorithm.run()
     # solution_to_verify = np.array([[11, 10, 9, 6, 3, 8, 1, 7, 5, 4, 0, 2]])
-    # do_verify_result(problem, solution_to_verify)
+    # do_verify_result(problem, solution_to_verify).
     NDSet.save()
     # sdn_nodes = [3]
     # pop = ea.Population(Encoding, Field, 1, Phen=np.array([sdn_nodes]))

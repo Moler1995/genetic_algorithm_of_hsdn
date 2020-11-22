@@ -47,7 +47,7 @@ class NearOptUpgradeStrategyWithDeterminedWeight(ea.Problem):
         pop_size = len(pop_values)
         obj_val_list = np.zeros([pop_size, self.M])
         start_time = time.time()
-        with ProcessPoolExecutor(max_workers=10) as executor:
+        with ProcessPoolExecutor(max_workers=8) as executor:
             for index, result in zip(range(pop_size), executor.map(self.solve_one_pop, pop_values)):
                 obj_val_list[index] = result
         # print('计算一个种群总耗时:{}'.format(time.time() - start_time))
