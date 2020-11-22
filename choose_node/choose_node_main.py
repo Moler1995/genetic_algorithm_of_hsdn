@@ -53,7 +53,8 @@ if __name__ == "__main__":
     json_name = "../utilization/add_weight/abilene_TM_2004_05.json"
     traffic_dir = "../abilene/TM/2004/05/"
     # 5月份的数据跑的结果[11,10,9,6,3,8,1,7,5,4,0,2]
-    # [11 10  9  3  4  5  0  6  1  7  8  2] result:  (129170827.83677036, 2103619.324897012, 0.49827735384980926)
+    # sdn_node_permutation:  [10 11  9  3  6  2  8  1  5  4  0  7]
+    # result:  (129513904.95372486, 2085701.1580105291, 0.49388074487397154)
     problem = NearOptUpgradeStrategyWithDeterminedWeight(graph, get_traffics(json_name, traffic_dir), bandwidth)
     Encoding = 'P'
     Field = ea.crtfld(Encoding, problem.varTypes, problem.ranges, problem.borders)  # 创建区域描述器
