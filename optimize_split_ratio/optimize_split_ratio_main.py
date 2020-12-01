@@ -53,4 +53,5 @@ if __name__ == "__main__":
                                                                   total_bandwidth_used, True)
     variance = calculator.calc_remaining_bandwidth_variance(bandwidth, total_bandwidth_used)
     max_utilization = calculator.calc_max_utilization(bandwidth, total_bandwidth_used)[0]
-    print()
+    print("utilization_formula_val: %s, variance: %s, max_utilization: %s"
+          % (utilization_formula_val, variance, max_utilization))
