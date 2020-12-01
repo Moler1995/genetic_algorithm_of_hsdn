@@ -1,10 +1,10 @@
+import random
 from collections import deque
 
-import numpy as np
-from near_optimal_split_ratio import NearOptimalSplitRatioProblem
 import geatpy as ea
-import random
-import calculator
+import numpy as np
+
+from near_optimal_split_ratio import NearOptimalSplitRatioProblem
 
 max_val = float('inf')
 
@@ -18,7 +18,7 @@ if __name__ == "__main__":
     bandwidth = np.array([[0.0, 15.0, 20.0, 0.0], [0.0, 0.0, 20.0, 30.0], [0.0, 0.0, 0.0, 10.0], [0.0, 0.0, 0.0, 0.0]])
     sdn_nodes = [1, 2]
     problem = NearOptimalSplitRatioProblem(dag=dag, topological_sorted_nodes=topological_sorted_nodes,
-                                           traffic=traffic, sdn_nodes=sdn_nodes, band_width=bandwidth)
+                                           sdn_nodes=sdn_nodes, band_width=bandwidth, traffics=np.array([traffic]))
     Encoding = "RI"
     NIND = 80
     Field = ea.crtfld(Encoding, problem.varTypes, problem.ranges, problem.borders)
@@ -68,7 +68,7 @@ if __name__ == "__main__":
     # print(calculator.calc_remaining_bandwidth_variance(bandwidth, used))
     # print(calculator.calc_utilization_formula(bandwidth, used))
     myAlgorithm.MAXGEN = 100
-    myAlgorithm.drawing = 1
+    myAlgorithm.drawing = 2
     NDSet = myAlgorithm.run(prophetPop)
     print('用时：%s 秒' % myAlgorithm.passTime)
     print('非支配个体数：%s 个' % NDSet.sizes)

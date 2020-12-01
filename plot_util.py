@@ -33,7 +33,9 @@ def plot_utilization_compared_result(month_index, optimize_result_count, thresho
     json_file_origin = "utilization/add_weight/abilene_TM_2004_%s.json" % month_index
     optimized_results = []
     for i in range(optimize_result_count):
-        json_file_optimized = "utilization/upgrade_strategy_%d_nodes/abilene_TM_2004_%s.json" % ((2 + i), month_index)
+        suffix = '' if i == 0 else 's'
+        json_file_optimized = "utilization/upgrade_strategy_%d_node%s/abilene_TM_2004_%s.json" \
+                              % ((1 + i), suffix, month_index)
         f = open(json_file_optimized, 'r', encoding='utf-8')
         optimized_result_dict = json.load(f, object_hook=dict)
         f.close()
@@ -58,7 +60,7 @@ def plot_utilization_compared_result(month_index, optimize_result_count, thresho
     plt.rcParams['font.sans-serif'] = ['SimHei']
     plt.plot(x_data, y1_data, 'r', label='原始利用率', linewidth=0.6)
     for i in range(optimize_result_count):
-        label_name = "升级%d个节点" % (i + 2)
+        label_name = "升级%d个节点" % (i + 1)
         plt.plot(x_data, y_optimized_data_dict[i], color_warehouse[i], label=label_name, linewidth=0.8)
     plt.xticks([])
     plt.title("%s月链路利用率变化折线图" % month_index)
@@ -105,8 +107,9 @@ def plot_utilization_func_val_compared_result(month_index, optimize_result_count
     json_file_origin = "utilization_function_value/add_weight/abilene_TM_2004_%s.json" % month_index
     optimized_results = []
     for i in range(optimize_result_count):
-        json_file_optimized = "utilization_function_value/upgrade_strategy_%d_nodes/abilene_TM_2004_%s.json"\
-                              % ((2 + i), month_index)
+        suffix = '' if i == 0 else 's'
+        json_file_optimized = "utilization_function_value/upgrade_strategy_%d_node%s/abilene_TM_2004_%s.json"\
+                              % ((1 + i), suffix, month_index)
         f = open(json_file_optimized, 'r', encoding='utf-8')
         optimized_result_dict = json.load(f, object_hook=dict)
         f.close()
@@ -132,7 +135,7 @@ def plot_utilization_func_val_compared_result(month_index, optimize_result_count
     if optimize_result_count == 1:
         plt.plot(x_data, y1_data, 'r', label='原始利用率函数值', linewidth=0.6)
     for i in range(optimize_result_count):
-        label_name = "升级%d个节点" % (i + 2)
+        label_name = "升级%d个节点" % (i + 1)
         plt.plot(x_data, y_optimized_data_dict[i], color_warehouse[i], label=label_name, linewidth=0.6)
     plt.xticks([])
     plt.title("%s月链路利用率函数值变化折线图" % month_index)
@@ -172,8 +175,9 @@ def plot_variance_compared_result(month_index, optimize_result_count, threshold=
     json_file_origin = "variance/add_weight/abilene_TM_2004_%s.json" % month_index
     optimized_results = []
     for i in range(optimize_result_count):
-        json_file_optimized = "variance/upgrade_strategy_%d_nodes/abilene_TM_2004_%s.json"\
-                              % ((2 + i), month_index)
+        suffix = '' if i == 0 else 's'
+        json_file_optimized = "variance/upgrade_strategy_%d_node%s/abilene_TM_2004_%s.json"\
+                              % ((1 + i), suffix, month_index)
         f = open(json_file_optimized, 'r', encoding='utf-8')
         optimized_result_dict = json.load(f, object_hook=dict)
         f.close()
@@ -198,7 +202,7 @@ def plot_variance_compared_result(month_index, optimize_result_count, threshold=
     plt.rcParams['font.sans-serif'] = ['SimHei']
     plt.plot(x_data, y1_data, 'r', label='原始剩余带宽标准差', linewidth=0.6)
     for i in range(optimize_result_count):
-        label_name = "升级%d个节点" % (i + 2)
+        label_name = "升级%d个节点" % (i + 1)
         plt.plot(x_data, y_optimized_data_dict[i], color_warehouse[i], label=label_name, linewidth=0.6)
     plt.xticks([])
     plt.title("%s月链路剩余带宽标准差变化折线图" % month_index)
@@ -239,7 +243,8 @@ def plot_avg_variance():
 
 
 if __name__ == "__main__":
-    # plot_variance_compared_result("09", 3)
-    plot_variance_compared_result('05', 2, 0.2)
+    plot_utilization_compared_result('05', 2, 0.15)
+    plot_utilization_func_val_compared_result('05', 2, 0.15)
+    plot_variance_compared_result('05', 2, 0.15)
 
 

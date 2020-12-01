@@ -7,14 +7,14 @@ import calculator
 max_val = float('inf')
 
 
-def execute(dag, topological_sorted_nodes, traffic, bandwidth, sdn_nodes, scene_determined_split_ratio=False):
+def execute(dag, topological_sorted_nodes, traffics, bandwidth, sdn_nodes, scene_determined_split_ratio=False):
     problem = NearOptimalSplitRatioProblem(dag=dag, topological_sorted_nodes=topological_sorted_nodes,
-                                           traffic=traffic, sdn_nodes=sdn_nodes, band_width=bandwidth)
+                                           sdn_nodes=sdn_nodes, band_width=bandwidth, traffics=traffics)
     if len(problem.sdn_node_link_count) == 0:
-        return problem.route_flow(None)
+        return problem.route_flow_traffics(None)
     if scene_determined_split_ratio:
         ratio_matrix = __determined_split_ratio(dag, sdn_nodes, problem, bandwidth)
-        return problem.route_flow(ratio_matrix)
+        return problem.route_flow_traffics(ratio_matrix)
     Encoding = "RI"
     NIND = 100
     Field = ea.crtfld(Encoding, problem.varTypes, problem.ranges, problem.borders)
@@ -91,9 +91,10 @@ def build_result_information(NDSet, problem, dag, target_node, do_print):
     :return: 最优解
     """
     # weight_ratio = sum(NDSet[:, 1] / NDSet[:, 0]) / len(NDSet)
+    NDSet.save()
     optimal_solution_weight = [0, 1]
     weighted_NDSet = NDSet.ObjV[:, 0] * optimal_solution_weight[0] + NDSet.ObjV[:, 1] * optimal_solution_weight[1]
-    near_optimal_bandwidth_used = problem.route_flow(NDSet.Phen[np.argmin(weighted_NDSet)])
+    near_optimal_bandwidth_used = problem.route_flow_traffics(NDSet.Phen[np.argmin(weighted_NDSet)])
     if not do_print:
         return near_optimal_bandwidth_used
     node_count = len(dag)
@@ -122,22 +123,22 @@ class NearOptimalSplitRatioProblem(ea.Problem):
     F2=σ(B(e)) = (Σ(B(e_i)-B(e))^2 / N(e)) ** (1/2)
     .s.t sum(flow_split_ratio(v)) = 1
     """
-    def __init__(self, dag=None, topological_sorted_nodes=None, traffic=None, sdn_nodes=None, band_width=None):
+    def __init__(self, dag=None, topological_sorted_nodes=None, sdn_nodes=None, band_width=None, traffics=None):
         """
         构造方法
         :param dag: 某一节点的有向无环图
         :param topological_sorted_nodes: 拓扑排序
-        :param traffic: 流量需求,有向
         :param sdn_nodes: sdn节点列表
         :param band_width: 初始带宽，0代表本节点或节点间无直连链路，无向，用矩阵上半三角表示链路带宽
                         e.g.[[0,100,0]
                             [0, 0, 400]
                             [0, 0, 0]]
+        :param traffics: 历史流量矩阵
         """
         name = 'SplittingRatio'
         self.dag = dag
         self.topological_sorted_nodes = topological_sorted_nodes
-        self.traffic = traffic
+        self.traffics = traffics
         self.sdn_nodes = sdn_nodes
         self.node_count = len(dag)
         self.band_width = band_width
@@ -183,7 +184,7 @@ class NearOptimalSplitRatioProblem(ea.Problem):
         # 每个个体横向取值仿真打流获取该个体的目标函数的参数
         obj_val = []
         for ratio_matrix in ratio_matrix_pop:
-            link_band_width_used = self.route_flow(ratio_matrix)
+            link_band_width_used = self.route_flow_traffics(ratio_matrix)
             value_of_utilization_formula = calculator.calc_utilization_formula(self.band_width, link_band_width_used)
             # 这个需要计算有流量经过的链路的剩余带宽方差
             remaining_bandwidth_variance = calculator.calc_remaining_bandwidth_variance(self.band_width,
@@ -200,10 +201,16 @@ class NearOptimalSplitRatioProblem(ea.Problem):
             prev += self.sdn_node_link_count[key]
         pop.CV = np.hstack([splitted_cv]).T
 
-    def route_flow(self, ratio_matrix):
+    def route_flow_traffics(self, ratio_matrix):
+        avg_sum = np.zeros([self.node_count, self.node_count])
+        for one_traffic in self.traffics:
+            avg_sum += self.route_flow(ratio_matrix, one_traffic)
+        return avg_sum / len(self.traffics)
+
+    def route_flow(self, ratio_matrix, traffic):
         link_band_width_used = np.zeros([self.node_count, self.node_count])
         # 拓扑排序最后一个节点为目标节点
-        flow_demand_to_target = self.traffic[:, self.topological_sorted_nodes[-1]]
+        flow_demand_to_target = traffic[:, self.topological_sorted_nodes[-1]]
         # 记录已经经过的sdn节点数量
         # 遍历完拓扑排序，流量就已经全部到达目标节点
         for topo_node in self.topological_sorted_nodes:
