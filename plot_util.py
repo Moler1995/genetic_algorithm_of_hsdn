@@ -68,7 +68,7 @@ def plot_utilization_compared_result(month_index, optimize_result_count, thresho
     plt.ylabel("链路最大利用率")
     plt.ylim((0, 1))
     plt.legend(fontsize=10)
-    plt.savefig("./charts/compare/utilization/compare_2_upgraded/%s.png" % month_index)
+    plt.savefig("./charts/compare/utilization/compare_%s_upgraded/%s.png" % (optimize_result_count, month_index))
     plt.show()
 
 
@@ -142,7 +142,7 @@ def plot_utilization_func_val_compared_result(month_index, optimize_result_count
     plt.xlabel("时间")
     plt.ylabel("链路利用率函数值")
     plt.legend(fontsize=10)
-    plt.savefig("./charts/compare/utilization_func_val/compare_%s_upgraded/%s.png" % (optimize_result_count + 1, month_index))
+    plt.savefig("./charts/compare/utilization_func_val/compare_%s_upgraded/%s.png" % (optimize_result_count, month_index))
     plt.show()
 
 
@@ -209,7 +209,7 @@ def plot_variance_compared_result(month_index, optimize_result_count, threshold=
     plt.xlabel("时间")
     plt.ylabel("剩余带宽标准差")
     plt.legend(fontsize=10)
-    plt.savefig("./charts/compare/variance/compare_%s_upgraded/%s.png" % (optimize_result_count + 1, month_index))
+    plt.savefig("./charts/compare/variance/compare_%s_upgraded/%s.png" % (optimize_result_count, month_index))
     plt.show()
 
 

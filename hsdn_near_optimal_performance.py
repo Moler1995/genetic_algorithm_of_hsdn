@@ -87,8 +87,8 @@ class SOHybridNetTEOptimizeProblem(ea.Problem):
                 legacy_node_dag = gu.build_dag(filled_weight_list, i, shortest_path_list)
                 # 针对每一个顶点的有向无环图查找sdn节点，增加可用链路并验证环路
                 dag, sorted_nodes = gu.add_links(filled_weight_list, legacy_node_dag, i, sdn_nodes)
-                near_optimal_bandwidth_used = nosr.execute(dag, sorted_nodes, self.traffic, self.band_width, sdn_nodes,
-                                                           scene_determined_split_ratio=True)
+                near_optimal_bandwidth_used = nosr.execute(dag, sorted_nodes, np.array([self.traffic]), self.band_width,
+                                                           sdn_nodes, scene_determined_split_ratio=True)
                 # print('sdn节点为%s, %d为目标的, 近似最优链路使用情况:\n' % (sdn_nodes, i),
                 #       near_optimal_bandwidth_used)
                 total_bandwidth_used = near_optimal_bandwidth_used + total_bandwidth_used
