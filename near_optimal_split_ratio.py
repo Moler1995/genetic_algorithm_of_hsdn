@@ -3,6 +3,7 @@ import geatpy as ea
 import numpy as np
 import random
 import calculator
+from concurrent.futures import ProcessPoolExecutor, as_completed
 
 max_val = float('inf')
 
@@ -11,10 +12,10 @@ def execute(dag, topological_sorted_nodes, traffics, bandwidth, sdn_nodes, scene
     problem = NearOptimalSplitRatioProblem(dag=dag, topological_sorted_nodes=topological_sorted_nodes,
                                            sdn_nodes=sdn_nodes, band_width=bandwidth, traffics=traffics)
     if len(problem.sdn_node_link_count) == 0:
-        return problem.route_flow_traffics(None)
+        return problem.parallel_route_flow_simulate(None)
     if scene_determined_split_ratio:
         ratio_matrix = __determined_split_ratio(dag, sdn_nodes, problem, bandwidth)
-        return problem.route_flow_traffics(ratio_matrix)
+        return problem.parallel_route_flow_simulate(ratio_matrix)
     Encoding = "RI"
     NIND = 100
     Field = ea.crtfld(Encoding, problem.varTypes, problem.ranges, problem.borders)
@@ -94,7 +95,7 @@ def build_result_information(NDSet, problem, dag, target_node, do_print):
     NDSet.save()
     optimal_solution_weight = [0, 1]
     weighted_NDSet = NDSet.ObjV[:, 0] * optimal_solution_weight[0] + NDSet.ObjV[:, 1] * optimal_solution_weight[1]
-    near_optimal_bandwidth_used = problem.route_flow_traffics(NDSet.Phen[np.argmin(weighted_NDSet)])
+    near_optimal_bandwidth_used = problem.parallel_route_flow_simulate(NDSet.Phen[np.argmin(weighted_NDSet)])
     if not do_print:
         return near_optimal_bandwidth_used
     node_count = len(dag)
@@ -184,7 +185,7 @@ class NearOptimalSplitRatioProblem(ea.Problem):
         # 每个个体横向取值仿真打流获取该个体的目标函数的参数
         obj_val = []
         for ratio_matrix in ratio_matrix_pop:
-            link_band_width_used = self.route_flow_traffics(ratio_matrix)
+            link_band_width_used = self.parallel_route_flow_simulate(ratio_matrix)
             value_of_utilization_formula = calculator.calc_utilization_formula(self.band_width, link_band_width_used)
             # 这个需要计算有流量经过的链路的剩余带宽方差
             remaining_bandwidth_variance = calculator.calc_remaining_bandwidth_variance(self.band_width,
@@ -201,11 +202,30 @@ class NearOptimalSplitRatioProblem(ea.Problem):
             prev += self.sdn_node_link_count[key]
         pop.CV = np.hstack([splitted_cv]).T
 
-    def route_flow_traffics(self, ratio_matrix):
-        avg_sum = np.zeros([self.node_count, self.node_count])
-        for one_traffic in self.traffics:
-            avg_sum += self.route_flow(ratio_matrix, one_traffic)
-        return avg_sum / len(self.traffics)
+    def parallel_route_flow_simulate(self, ratio_matrix):
+        traffic_num = len(self.traffics)
+        if traffic_num < 400:
+            return self.route_flow_traffics(ratio_matrix, 0, traffic_num) / traffic_num
+        worker_count = 4
+        step = int(traffic_num / worker_count)
+        total_bandwidth_used = np.zeros([self.node_count, self.node_count])
+        with ProcessPoolExecutor(max_workers=worker_count) as executor:
+            jobs = []
+            start = 0
+            for index in range(worker_count):
+                jobs.append(executor.submit(self.route_flow_traffics, ratio_matrix, start, step))
+                start += step
+            for job in as_completed(jobs):
+                total_bandwidth_used = total_bandwidth_used + job.result()
+        return total_bandwidth_used / traffic_num
+
+    def route_flow_traffics(self, ratio_matrix, start, step):
+        avg = np.zeros([self.node_count, self.node_count])
+        traffic_slice = self.traffics[start:start + step] if start + step <= len(self.traffics) \
+            else self.traffics[start:len(self.traffics)]
+        for one_traffic in traffic_slice:
+            avg += self.route_flow(ratio_matrix, one_traffic)
+        return avg
 
     def route_flow(self, ratio_matrix, traffic):
         link_band_width_used = np.zeros([self.node_count, self.node_count])
