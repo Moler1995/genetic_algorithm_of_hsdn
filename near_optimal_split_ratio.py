@@ -1,9 +1,12 @@
 # -*- coding: utf-8 -*-
+import random
+import time
+from concurrent.futures import ProcessPoolExecutor, as_completed
+
 import geatpy as ea
 import numpy as np
-import random
+
 import calculator
-from concurrent.futures import ProcessPoolExecutor, as_completed
 
 max_val = float('inf')
 
@@ -181,17 +184,21 @@ class NearOptimalSplitRatioProblem(ea.Problem):
         :return:
         """
         ratio_matrix_pop = pop.Phen
-        # print(ratio_matrix_pop)
         # 每个个体横向取值仿真打流获取该个体的目标函数的参数
         obj_val = []
-        for ratio_matrix in ratio_matrix_pop:
-            link_band_width_used = self.parallel_route_flow_simulate(ratio_matrix)
-            value_of_utilization_formula = calculator.calc_utilization_formula(self.band_width, link_band_width_used)
-            # 这个需要计算有流量经过的链路的剩余带宽方差
-            remaining_bandwidth_variance = calculator.calc_remaining_bandwidth_variance(self.band_width,
-                                                                                        link_band_width_used)
-            obj_val.append([value_of_utilization_formula, remaining_bandwidth_variance])
-        # print(obj_val))
+        worker_count = 5
+        with ProcessPoolExecutor(max_workers=worker_count) as executor:
+            jobs = []
+            for ratio_matrix in ratio_matrix_pop:
+                jobs.append(executor.submit(self.parallel_route_flow_simulate, ratio_matrix))
+            for job in as_completed(jobs):
+                link_band_width_used = job.result()
+                value_of_utilization_formula = calculator.calc_utilization_formula(self.band_width,
+                                                                                   link_band_width_used)
+                # 这个需要计算有流量经过的链路的剩余带宽方差
+                remaining_bandwidth_variance = calculator.calc_remaining_bandwidth_variance(self.band_width,
+                                                                                            link_band_width_used)
+                obj_val.append([value_of_utilization_formula, remaining_bandwidth_variance])
         pop.ObjV = np.hstack([obj_val])
         # .s.t sum(flow_ratio(node_v)) = 1 可行性法则
         splitted_cv = []
@@ -204,7 +211,8 @@ class NearOptimalSplitRatioProblem(ea.Problem):
 
     def parallel_route_flow_simulate(self, ratio_matrix):
         traffic_num = len(self.traffics)
-        if traffic_num < 400:
+        if traffic_num < 10000:
+            print("end", ratio_matrix)
             return self.route_flow_traffics(ratio_matrix, 0, traffic_num) / traffic_num
         worker_count = 4
         step = int(traffic_num / worker_count)
@@ -217,6 +225,7 @@ class NearOptimalSplitRatioProblem(ea.Problem):
                 start += step
             for job in as_completed(jobs):
                 total_bandwidth_used = total_bandwidth_used + job.result()
+        print("end", ratio_matrix)
         return total_bandwidth_used / traffic_num
 
     def route_flow_traffics(self, ratio_matrix, start, step):
