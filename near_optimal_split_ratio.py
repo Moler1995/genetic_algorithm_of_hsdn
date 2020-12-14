@@ -10,13 +10,14 @@ import calculator
 max_val = float('inf')
 
 
-def execute(dag, topological_sorted_nodes, traffics, bandwidth, sdn_nodes, scene_determined_split_ratio=False):
+def execute(dag, topological_sorted_nodes, traffics, bandwidth, sdn_nodes, scene_determined_split_ratio=False,
+            scene_verification=False):
     problem = NearOptimalSplitRatioProblem(dag=dag, topological_sorted_nodes=topological_sorted_nodes,
                                            sdn_nodes=sdn_nodes, band_width=bandwidth, traffics=traffics)
     if len(problem.sdn_node_link_count) == 0:
         return problem.parallel_route_flow_simulate(None)
     if scene_determined_split_ratio:
-        ratio_matrix = __determined_split_ratio(dag, sdn_nodes, problem, bandwidth)
+        ratio_matrix = __determined_split_ratio(dag, sdn_nodes, problem, bandwidth, scene_verification)
         return problem.parallel_route_flow_simulate(ratio_matrix)
     Encoding = "RI"
     NIND = 100
@@ -38,7 +39,19 @@ def execute(dag, topological_sorted_nodes, traffics, bandwidth, sdn_nodes, scene
     return build_result_information(NDSet, problem, dag, topological_sorted_nodes[-1], True)
 
 
-def __determined_split_ratio(dag, sdn_nodes, problem, bandwidth):
+def __determined_split_ratio(dag, sdn_nodes, problem, bandwidth, scene_verify=False):
+    if scene_verify:
+        split_ratio_matrix = np.array([[None] * 12] * 12)
+        split_ratio_matrix[10][0] = [0.64, 0.36]
+        split_ratio_matrix[10][1] = [0, 1]
+        split_ratio_matrix[11][2] = [0.8156, 0.1844]
+        split_ratio_matrix[11][3] = [1, 0]
+        split_ratio_matrix[10][4] = [0, 1]
+        split_ratio_matrix[11][4] = [1, 0]
+        split_ratio_matrix[10][5] = [0, 1]
+        split_ratio_matrix[11][5] = [0.336, 0.664]
+        split_ratio_matrix[10][6] = [0, 1]
+        return split_ratio_matrix
     ratio_matrix = []
     for sdn_node in sdn_nodes:
         if sdn_node not in problem.sdn_node_link_count.keys():

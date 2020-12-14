@@ -36,7 +36,7 @@ max_val = float('inf')
 
 
 class SOHybridNetTEOptimizeProblem(ea.Problem):
-    def __init__(self, graph=None, sdn_node_count=0, traffic=None, band_width=None, xml_name=None):
+    def __init__(self, graph=None, sdn_node_count=0, traffic=None, band_width=None, xml_name=None, scene_verify=False):
         """
         构造函数
         :param graph: 连接图,有连接为1无连接为max_val,本节点为0
@@ -70,6 +70,7 @@ class SOHybridNetTEOptimizeProblem(ea.Problem):
         self.traffic = traffic
         self.band_width = band_width
         self.xml_name = xml_name
+        self.scene_verify = scene_verify
 
     def aimFunc1(self, pop):
         pop_values = pop.Phen
@@ -88,7 +89,8 @@ class SOHybridNetTEOptimizeProblem(ea.Problem):
                 # 针对每一个顶点的有向无环图查找sdn节点，增加可用链路并验证环路
                 dag, sorted_nodes = gu.add_links(filled_weight_list, legacy_node_dag, i, sdn_nodes)
                 near_optimal_bandwidth_used = nosr.execute(dag, sorted_nodes, np.array([self.traffic]), self.band_width,
-                                                           sdn_nodes, scene_determined_split_ratio=True)
+                                                           sdn_nodes, scene_determined_split_ratio=True,
+                                                           scene_verification=self.scene_verify)
                 # print('sdn节点为%s, %d为目标的, 近似最优链路使用情况:\n' % (sdn_nodes, i),
                 #       near_optimal_bandwidth_used)
                 total_bandwidth_used = near_optimal_bandwidth_used + total_bandwidth_used

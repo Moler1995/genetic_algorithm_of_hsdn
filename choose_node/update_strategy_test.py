@@ -12,7 +12,7 @@ max_utilization_dict = {}
 utilization_func_val_dict = {}
 variance_dict = {}
 congestion_times_dict = {}
-base_dir = "abilene/TM/2004"
+base_dir = "../abilene/TM/2004"
 num_to_city_dict = {2: "ATLA-M5", 3: "ATLAng", 11: "CHINng", 8: "DNVRng", 4: "HSTNng", 10: "IPLSng",
                     9: "KSCYng", 5: "LOSAng", 0: "NYCMng", 6: "SNVAng", 7: "STTLng", 1: "WASHng"}
 city_to_num_dict = {"ATLA-M5": 2, "ATLAng": 3, "CHINng": 11, "DNVRng": 8, "HSTNng": 4, "IPLSng": 10,
