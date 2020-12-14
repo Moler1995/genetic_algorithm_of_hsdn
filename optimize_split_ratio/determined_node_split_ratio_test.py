@@ -52,11 +52,11 @@ def solve_segments(dir_name, graph, sdn_count, sdn_nodes, bandwidth, worker_coun
                     congestion_times_dict[cong_key] = 1
     out_dir = "up_%s_node%s_ratio_verify" % (sdn_count, "" if sdn_count <= 1 else "s")
     utilization_json_name = ''.join(['../utilization/%s/' % out_dir,
-                                     dir_name.replace('\\', '_').replace('/', '_'), '.json'])
+                                     dir_name.replace('\\', '_').replace('/', '_').replace('.._', ''), '.json'])
     utilization_func_val_json_name = ''.join(['../utilization_function_value/%s/' % out_dir,
-                                              dir_name.replace('\\', '_').replace('/', '_'), '.json'])
+                                              dir_name.replace('\\', '_').replace('/', '_').replace('.._', ''), '.json'])
     variance_json_name = ''.join(['../variance/%s/' % out_dir,
-                                  dir_name.replace('\\', '_').replace('/', '_'), '.json'])
+                                  dir_name.replace('\\', '_').replace('/', '_').replace('.._', ''), '.json'])
     f = open(utilization_json_name, mode='w', encoding='utf-8')
     f.write(json.dumps(max_utilization_dict))
     f.close()

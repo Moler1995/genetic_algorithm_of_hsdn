@@ -213,38 +213,140 @@ def plot_variance_compared_result(month_index, optimize_result_count, threshold=
     plt.show()
 
 
-def plot_avg_utilization():
-    utilization_base_dir = "utilization/"
-    avg_utilization_dict = {}
-    for dir_name in os.listdir(utilization_base_dir):
-        if dir_name == 'add_weight':
-            pass
+def plot_optimized_split_utilization(month_index, node_upgraded, threshold=0.0):
+    json_file_origin = "utilization/add_weight/abilene_TM_2004_%s.json" % month_index
+    f_0 = open(json_file_origin, 'r', encoding="utf-8")
+    origin_result_dict = json.load(f_0, object_hook=dict)
+    f_0.close()
+    suffix = '' if node_upgraded < 2 else 's'
+    json_file_optimized_nodes = "utilization/upgrade_strategy_%d_node%s/abilene_TM_2004_%s.json" \
+                                % (node_upgraded, suffix, month_index)
+    f_1 = open(json_file_optimized_nodes, 'r', encoding='utf-8')
+    optimized_node_result_dict = json.load(f_1, object_hook=dict)
+    f_1.close()
+    json_file_optimized_split = "utilization/up_%d_node%s_ratio_verify/abilene_TM_2004_%s.json" \
+                                % (node_upgraded, suffix, month_index)
+    f_2 = open(json_file_optimized_split, 'r', encoding='utf-8')
+    optimized_split_result_dict = json.load(f_2, object_hook=dict)
+    f_2.close()
+    x_data = []
+    y0_data = []
+    y1_data = []
+    y2_data = []
+    for key in origin_result_dict.keys():
+        if origin_result_dict[key] <= threshold:
+            continue
+        x_data.append(''.join(key.split('-')[-2:]).split('.')[0])
+        y0_data.append(origin_result_dict[key])
+        y1_data.append(optimized_node_result_dict[key])
+        y2_data.append(optimized_split_result_dict[key])
+    plt.figure(figsize=(15, 5))
+    plt.rcParams['font.sans-serif'] = ['SimHei']
+    plt.plot(x_data, y0_data, 'r', label='原始利用率', linewidth=0.6)
+    plt.plot(x_data, y1_data, 'b', label='升级%d节点后' % node_upgraded, linewidth=0.8)
+    plt.plot(x_data, y2_data, 'g', label='优化分流后', linewidth=0.8)
+    plt.xticks([])
+    plt.title("%s月链路利用率变化折线图" % month_index)
+    plt.xlabel("时间")
+    plt.ylabel("链路最大利用率")
+    plt.ylim((0, 1))
+    plt.legend(fontsize=10)
+    plt.savefig("./charts/compare/utilization/compare_%s_upgrade_split_optimized/%s.png" % (node_upgraded, month_index))
+    plt.show()
 
 
-def calc_avg_val(dir_name):
-    total_avg = 0
-    file_count = len(os.listdir(dir_name))
-    monthly_avg_dict = {}
-    for file in os.listdir(dir_name):
-        f = open(os.path.join(dir_name, file), 'r', encoding='utf-8')
-        tmp_dict = json.load(f, object_hook=dict)
-        sum_val = sum(tmp_dict.values())
-        monthly_avg_dict[file] = sum_val / len(tmp_dict)
-        total_avg += sum_val / len(tmp_dict)
-    return monthly_avg_dict
+def plot_optimized_split_utilization_func_val(month_index, node_upgraded, threshold=0.0):
+    json_file_origin = "utilization_function_value/add_weight/abilene_TM_2004_%s.json" % month_index
+    f_0 = open(json_file_origin, 'r', encoding="utf-8")
+    origin_result_dict = json.load(f_0, object_hook=dict)
+    f_0.close()
+    suffix = '' if node_upgraded < 2 else 's'
+    json_file_optimized_nodes = "utilization_function_value/upgrade_strategy_%d_node%s/abilene_TM_2004_%s.json" \
+                                % (node_upgraded, suffix, month_index)
+    f_1 = open(json_file_optimized_nodes, 'r', encoding='utf-8')
+    optimized_node_result_dict = json.load(f_1, object_hook=dict)
+    f_1.close()
+    json_file_optimized_split = "utilization_function_value/up_%d_node%s_ratio_verify/abilene_TM_2004_%s.json" \
+                                % (node_upgraded, suffix, month_index)
+    f_2 = open(json_file_optimized_split, 'r', encoding='utf-8')
+    optimized_split_result_dict = json.load(f_2, object_hook=dict)
+    f_2.close()
+    x_data = []
+    y0_data = []
+    y1_data = []
+    y2_data = []
+    for key in origin_result_dict.keys():
+        if origin_result_dict[key] <= threshold:
+            continue
+        x_data.append(''.join(key.split('-')[-2:]).split('.')[0])
+        y0_data.append(origin_result_dict[key])
+        y1_data.append(optimized_node_result_dict[key])
+        y2_data.append(optimized_split_result_dict[key])
+    plt.figure(figsize=(15, 5))
+    plt.rcParams['font.sans-serif'] = ['SimHei']
+    # plt.plot(x_data, y0_data, 'r', label='原始利用率', linewidth=0.6)
+    plt.plot(x_data, y1_data, 'b', label='升级%d节点后' % node_upgraded, linewidth=0.8)
+    plt.plot(x_data, y2_data, 'g', label='优化分流后', linewidth=0.8)
+    plt.xticks([])
+    plt.title("%s月链路利用率函数变化折线图" % month_index)
+    plt.xlabel("时间")
+    plt.ylabel("链路利用率函数")
+    # plt.ylim((0, 1))
+    plt.legend(fontsize=10)
+    plt.savefig("./charts/compare/utilization_func_val/compare_%s_upgrade_split_optimized/%s.png" % (node_upgraded, month_index))
+    plt.show()
 
 
-def plot_avg_utilization_func_val():
-    pass
-
-
-def plot_avg_variance():
-    pass
+def plot_optimized_split_variance(month_index, node_upgraded, threshold=0.0):
+    json_file_origin = "variance/add_weight/abilene_TM_2004_%s.json" % month_index
+    f_0 = open(json_file_origin, 'r', encoding="utf-8")
+    origin_result_dict = json.load(f_0, object_hook=dict)
+    f_0.close()
+    suffix = '' if node_upgraded < 2 else 's'
+    json_file_optimized_nodes = "variance/upgrade_strategy_%d_node%s/abilene_TM_2004_%s.json" \
+                                % (node_upgraded, suffix, month_index)
+    f_1 = open(json_file_optimized_nodes, 'r', encoding='utf-8')
+    optimized_node_result_dict = json.load(f_1, object_hook=dict)
+    f_1.close()
+    json_file_optimized_split = "variance/up_%d_node%s_ratio_verify/abilene_TM_2004_%s.json" \
+                                % (node_upgraded, suffix, month_index)
+    f_2 = open(json_file_optimized_split, 'r', encoding='utf-8')
+    optimized_split_result_dict = json.load(f_2, object_hook=dict)
+    f_2.close()
+    x_data = []
+    y0_data = []
+    y1_data = []
+    y2_data = []
+    for key in origin_result_dict.keys():
+        if origin_result_dict[key] <= threshold:
+            continue
+        x_data.append(''.join(key.split('-')[-2:]).split('.')[0])
+        y0_data.append(origin_result_dict[key])
+        y1_data.append(optimized_node_result_dict[key])
+        y2_data.append(optimized_split_result_dict[key])
+    plt.figure(figsize=(15, 5))
+    plt.rcParams['font.sans-serif'] = ['SimHei']
+    # plt.plot(x_data, y0_data, 'r', label='原始利用率', linewidth=0.6)
+    plt.plot(x_data, y1_data, 'b', label='升级%d节点后' % node_upgraded, linewidth=0.8)
+    plt.plot(x_data, y2_data, 'g', label='优化分流后', linewidth=0.8)
+    plt.xticks([])
+    plt.title("%s月链路剩余带宽方差变化折线图" % month_index)
+    plt.xlabel("时间")
+    plt.ylabel("剩余带宽方差")
+    # plt.ylim((0, 1))
+    plt.legend(fontsize=10)
+    plt.savefig("./charts/compare/variance/compare_%s_upgrade_split_optimized/%s.png" % (node_upgraded, month_index))
+    plt.show()
 
 
 if __name__ == "__main__":
-    plot_utilization_compared_result('05', 2, 0.15)
-    plot_utilization_func_val_compared_result('05', 2, 0.15)
-    plot_variance_compared_result('05', 2, 0.15)
+    # plot_utilization_compared_result('05', 2, 0.15)
+    # plot_utilization_func_val_compared_result('05', 2, 0.15)
+    # plot_variance_compared_result('05', 2, 0.15)
+    plot_optimized_split_utilization('05', 2, 0.15)
+    plot_optimized_split_utilization_func_val('05', 2, 0.15)
+    plot_optimized_split_variance('05', 2, 0.15)
+
+
 
 
