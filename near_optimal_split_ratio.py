@@ -8,6 +8,16 @@ import numpy as np
 import calculator
 
 max_val = float('inf')
+split_ratio_matrix = np.array([[None] * 12] * 12)
+split_ratio_matrix[10][0] = [0.64, 0.36]
+split_ratio_matrix[10][1] = [0, 1]
+split_ratio_matrix[11][2] = [0.8156, 0.1844]
+split_ratio_matrix[11][3] = [1, 0]
+split_ratio_matrix[10][4] = [0, 1]
+split_ratio_matrix[11][4] = [1, 0]
+split_ratio_matrix[10][5] = [0, 1]
+split_ratio_matrix[11][5] = [0.336, 0.664]
+split_ratio_matrix[10][6] = [0, 1]
 
 
 def execute(dag, topological_sorted_nodes, traffics, bandwidth, sdn_nodes, scene_determined_split_ratio=False,
@@ -40,19 +50,14 @@ def execute(dag, topological_sorted_nodes, traffics, bandwidth, sdn_nodes, scene
 
 
 def __determined_split_ratio(dag, sdn_nodes, problem, bandwidth, scene_verify=False):
-    if scene_verify:
-        split_ratio_matrix = np.array([[None] * 12] * 12)
-        split_ratio_matrix[10][0] = [0.64, 0.36]
-        split_ratio_matrix[10][1] = [0, 1]
-        split_ratio_matrix[11][2] = [0.8156, 0.1844]
-        split_ratio_matrix[11][3] = [1, 0]
-        split_ratio_matrix[10][4] = [0, 1]
-        split_ratio_matrix[11][4] = [1, 0]
-        split_ratio_matrix[10][5] = [0, 1]
-        split_ratio_matrix[11][5] = [0.336, 0.664]
-        split_ratio_matrix[10][6] = [0, 1]
-        return split_ratio_matrix
     ratio_matrix = []
+    if scene_verify:
+        target = problem.topological_sorted_nodes[-1]
+        target_split_matrix = split_ratio_matrix[:, target]
+        for split_ratio in target_split_matrix:
+            if split_ratio:
+                ratio_matrix += split_ratio
+        return np.array(ratio_matrix)
     for sdn_node in sdn_nodes:
         if sdn_node not in problem.sdn_node_link_count.keys():
             continue
