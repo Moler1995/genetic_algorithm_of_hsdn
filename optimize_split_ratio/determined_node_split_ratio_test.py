@@ -50,7 +50,7 @@ def solve_segments(dir_name, graph, sdn_count, sdn_nodes, bandwidth, worker_coun
                     congestion_times_dict[cong_key] = congestion_times_dict[cong_key] + 1
                 else:
                     congestion_times_dict[cong_key] = 1
-    out_dir = "up_%s_node%s_ratio_verify" % (sdn_count, "" if sdn_count <= 1 else "s")
+    out_dir = "up_%s_node%s_ratio_verify" % (sdn_count, "" if sdn_count <=  1 else "s")
     utilization_json_name = ''.join(['../utilization/%s/' % out_dir,
                                      dir_name.replace('\\', '_').replace('/', '_').replace('.._', ''), '.json'])
     utilization_func_val_json_name = ''.join(['../utilization_function_value/%s/' % out_dir,
@@ -106,7 +106,7 @@ if __name__ == "__main__":
         bandwidth[4][9], bandwidth[5][6], bandwidth[6][7], bandwidth[6][8], bandwidth[7][8], bandwidth[8][9], \
         bandwidth[9][10], bandwidth[10][11] = [9920000] * 14
     bandwidth[3][10] = 2480000
-    sdn_count = 2
-    sdn_nodes = [10, 11]
+    sdn_count = 3
+    sdn_nodes = [10, 11, 9]
     calc_normal_utilization(graph, sdn_count, sdn_nodes, bandwidth)
 

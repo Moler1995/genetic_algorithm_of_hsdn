@@ -343,9 +343,9 @@ if __name__ == "__main__":
     # plot_utilization_compared_result('05', 2, 0.15)
     # plot_utilization_func_val_compared_result('05', 2, 0.15)
     # plot_variance_compared_result('05', 2, 0.15)
-    plot_optimized_split_utilization('05', 2, 0.15)
-    plot_optimized_split_utilization_func_val('05', 2, 0.15)
-    plot_optimized_split_variance('05', 2, 0.15)
+    plot_optimized_split_utilization('05', 3, 0.15)
+    plot_optimized_split_utilization_func_val('05', 3, 0.15)
+    plot_optimized_split_variance('05', 3, 0.15)
 
 
 
