@@ -1,8 +1,8 @@
-import matplotlib.pyplot as plt
 import json
-import os
 
-color_warehouse = ['blue', 'green', 'yellow']
+import matplotlib.pyplot as plt
+
+color_warehouse = ['blue', 'green', 'grey']
 
 
 def plot_individual_utilization_result(month_index, threshold=0.0):
@@ -56,7 +56,7 @@ def plot_utilization_compared_result(month_index, optimize_result_count, thresho
                 y_optimized_data_dict[i].append(optimized_results[i][key])
             else:
                 y_optimized_data_dict[i] = [optimized_results[i][key]]
-    plt.figure(figsize=(15, 5))
+    plt.figure(figsize=(12, 4))
     plt.rcParams['font.sans-serif'] = ['SimHei']
     plt.plot(x_data, y1_data, 'r', label='原始利用率', linewidth=0.6)
     for i in range(optimize_result_count):
@@ -88,7 +88,7 @@ def plot_utilization_func_val_chart(month_index, threshold=0.0):
             continue
         x_data.append(''.join(key.split('-')[-2:]).split('.')[0])
         y_data.append(result_dict[key])
-    plt.figure(figsize=(15, 5))
+    plt.figure(figsize=(12, 4))
     plt.plot(x_data, y_data, linewidth=0.6)
     plt.xticks([])
     plt.rcParams['font.sans-serif'] = ['SimHei']
@@ -130,7 +130,7 @@ def plot_utilization_func_val_compared_result(month_index, optimize_result_count
                 y_optimized_data_dict[i].append(optimized_results[i][key])
             else:
                 y_optimized_data_dict[i] = [optimized_results[i][key]]
-    plt.figure(figsize=(15, 5))
+    plt.figure(figsize=(12, 4))
     plt.rcParams['font.sans-serif'] = ['SimHei']
     if optimize_result_count == 1:
         plt.plot(x_data, y1_data, 'r', label='原始利用率函数值', linewidth=0.6)
@@ -156,7 +156,7 @@ def plot_variance_chart(month_index):
     for key in result_dict.keys():
         x_data.append(''.join(key.split('-')[-2:]).split('.')[0])
         y_data.append(result_dict[key])
-    plt.figure(figsize=(15, 5))
+    plt.figure(figsize=(12, 4))
     plt.plot(x_data, y_data, linewidth=0.6)
     plt.xticks([])
     plt.rcParams['font.sans-serif'] = ['SimHei']
@@ -198,7 +198,7 @@ def plot_variance_compared_result(month_index, optimize_result_count, threshold=
                 y_optimized_data_dict[i].append(optimized_results[i][key])
             else:
                 y_optimized_data_dict[i] = [optimized_results[i][key]]
-    plt.figure(figsize=(15, 5))
+    plt.figure(figsize=(12, 4))
     plt.rcParams['font.sans-serif'] = ['SimHei']
     plt.plot(x_data, y1_data, 'r', label='原始剩余带宽标准差', linewidth=0.6)
     for i in range(optimize_result_count):
@@ -240,11 +240,11 @@ def plot_optimized_split_utilization(month_index, node_upgraded, threshold=0.0):
         y0_data.append(origin_result_dict[key])
         y1_data.append(optimized_node_result_dict[key])
         y2_data.append(optimized_split_result_dict[key])
-    plt.figure(figsize=(15, 5))
+    plt.figure(figsize=(12, 4))
     plt.rcParams['font.sans-serif'] = ['SimHei']
     plt.plot(x_data, y0_data, 'r', label='原始利用率', linewidth=0.6)
-    plt.plot(x_data, y1_data, 'b', label='升级%d节点后' % node_upgraded, linewidth=0.8)
-    plt.plot(x_data, y2_data, 'g', label='优化分流后', linewidth=0.8)
+    plt.plot(x_data, y1_data, 'b', label='升级%d节点后' % node_upgraded, linewidth=0.6)
+    plt.plot(x_data, y2_data, 'g', label='优化分流后', linewidth=0.6)
     plt.xticks([])
     plt.title("%s月链路利用率变化折线图" % month_index)
     plt.xlabel("时间")
@@ -252,11 +252,11 @@ def plot_optimized_split_utilization(month_index, node_upgraded, threshold=0.0):
     plt.ylim((0, 1))
     plt.legend(fontsize=10)
     plt.savefig("./charts/compare/utilization/compare_%s_upgrade_split_optimized/%s.png" % (node_upgraded, month_index))
-    plt.show()
+    # plt.show()
 
 
 def plot_optimized_split_utilization_func_val(month_index, node_upgraded, threshold=0.0):
-    json_file_origin = "utilization_function_value/add_weight/abilene_TM_2004_%s.json" % month_index
+    json_file_origin = "utilization/add_weight/abilene_TM_2004_%s.json" % month_index
     f_0 = open(json_file_origin, 'r', encoding="utf-8")
     origin_result_dict = json.load(f_0, object_hook=dict)
     f_0.close()
@@ -282,11 +282,11 @@ def plot_optimized_split_utilization_func_val(month_index, node_upgraded, thresh
         y0_data.append(origin_result_dict[key])
         y1_data.append(optimized_node_result_dict[key])
         y2_data.append(optimized_split_result_dict[key])
-    plt.figure(figsize=(15, 5))
+    plt.figure(figsize=(12, 4))
     plt.rcParams['font.sans-serif'] = ['SimHei']
     # plt.plot(x_data, y0_data, 'r', label='原始利用率', linewidth=0.6)
-    plt.plot(x_data, y1_data, 'b', label='升级%d节点后' % node_upgraded, linewidth=0.8)
-    plt.plot(x_data, y2_data, 'g', label='优化分流后', linewidth=0.8)
+    plt.plot(x_data, y1_data, 'b', label='升级%d节点后' % node_upgraded, linewidth=0.6)
+    plt.plot(x_data, y2_data, 'g', label='优化分流后', linewidth=0.6)
     plt.xticks([])
     plt.title("%s月链路利用率函数变化折线图" % month_index)
     plt.xlabel("时间")
@@ -294,11 +294,11 @@ def plot_optimized_split_utilization_func_val(month_index, node_upgraded, thresh
     # plt.ylim((0, 1))
     plt.legend(fontsize=10)
     plt.savefig("./charts/compare/utilization_func_val/compare_%s_upgrade_split_optimized/%s.png" % (node_upgraded, month_index))
-    plt.show()
+    # plt.show()
 
 
 def plot_optimized_split_variance(month_index, node_upgraded, threshold=0.0):
-    json_file_origin = "variance/add_weight/abilene_TM_2004_%s.json" % month_index
+    json_file_origin = "utilization/add_weight/abilene_TM_2004_%s.json" % month_index
     f_0 = open(json_file_origin, 'r', encoding="utf-8")
     origin_result_dict = json.load(f_0, object_hook=dict)
     f_0.close()
@@ -324,11 +324,11 @@ def plot_optimized_split_variance(month_index, node_upgraded, threshold=0.0):
         y0_data.append(origin_result_dict[key])
         y1_data.append(optimized_node_result_dict[key])
         y2_data.append(optimized_split_result_dict[key])
-    plt.figure(figsize=(15, 5))
+    plt.figure(figsize=(12, 4))
     plt.rcParams['font.sans-serif'] = ['SimHei']
     # plt.plot(x_data, y0_data, 'r', label='原始利用率', linewidth=0.6)
-    plt.plot(x_data, y1_data, 'b', label='升级%d节点后' % node_upgraded, linewidth=0.8)
-    plt.plot(x_data, y2_data, 'g', label='优化分流后', linewidth=0.8)
+    plt.plot(x_data, y1_data, 'b', label='升级%d节点后' % node_upgraded, linewidth=0.6)
+    plt.plot(x_data, y2_data, 'g', label='优化分流后', linewidth=0.6)
     plt.xticks([])
     plt.title("%s月链路剩余带宽方差变化折线图" % month_index)
     plt.xlabel("时间")
@@ -336,13 +336,13 @@ def plot_optimized_split_variance(month_index, node_upgraded, threshold=0.0):
     # plt.ylim((0, 1))
     plt.legend(fontsize=10)
     plt.savefig("./charts/compare/variance/compare_%s_upgrade_split_optimized/%s.png" % (node_upgraded, month_index))
-    plt.show()
+    # plt.show()
 
 
 if __name__ == "__main__":
-    # plot_utilization_compared_result('05', 2, 0.15)
-    # plot_utilization_func_val_compared_result('05', 2, 0.15)
-    # plot_variance_compared_result('05', 2, 0.15)
+    # plot_utilization_compared_result('05', 3, 0.15)
+    # plot_utilization_func_val_compared_result('05', 3, 0.15)
+    # plot_variance_compared_result('05', 3, 0.15)
     plot_optimized_split_utilization('05', 3, 0.15)
     plot_optimized_split_utilization_func_val('05', 3, 0.15)
     plot_optimized_split_variance('05', 3, 0.15)
