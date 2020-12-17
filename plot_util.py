@@ -339,13 +339,98 @@ def plot_optimized_split_variance(month_index, node_upgraded, threshold=0.0):
     # plt.show()
 
 
+def plot_upgrade_strategy_utilization_avg(month_index):
+    avg_dict = {}
+    json_file_origin = "utilization/add_weight/abilene_TM_2004_%s.json" % month_index
+    f_0 = open(json_file_origin, 'r', encoding="utf-8")
+    origin_result_dict = json.load(f_0, object_hook=dict)
+    avg_dict[0] = calc_avg_val(origin_result_dict, month_index)
+    for i in range(1, 13):
+        file_name = "utilization/upgrade_strategy_%d_node%s/abilene_TM_2004_%s.json" % (i, '' if i == 1 else 's', month_index)
+        f_x = open(file_name, 'r', encoding='utf-8')
+        val_dict = json.load(f_x, object_hook=dict)
+        f_x.close()
+        avg_dict[i] = calc_avg_val(val_dict, month_index)
+    plt.figure(figsize=(12, 4))
+    plt.rcParams['font.sans-serif'] = ['SimHei']
+    plt.plot(avg_dict.keys(), avg_dict.values(), 'ro-', label='平均链路利用率', linewidth=1)
+    plt.title("%s月升级平均利用率变化折线图" % month_index)
+    plt.xlabel("升级节点数量")
+    plt.ylabel("链路平均利用率")
+    # plt.ylim((0.4, 0.6))
+    plt.xlim((0, 12))
+    plt.legend(fontsize=10)
+    plt.show()
+
+
+def plot_avg_utilization_func_val(month_index):
+    avg_dict = {}
+    json_file_origin = "utilization_function_value/add_weight/abilene_TM_2004_%s.json" % month_index
+    f_0 = open(json_file_origin, 'r', encoding="utf-8")
+    origin_result_dict = json.load(f_0, object_hook=dict)
+    avg_dict[0] = calc_avg_val(origin_result_dict, month_index)
+    for i in range(1, 13):
+        file_name = "utilization_function_value/upgrade_strategy_%d_node%s/abilene_TM_2004_%s.json" % (
+        i, '' if i == 1 else 's', month_index)
+        f_x = open(file_name, 'r', encoding='utf-8')
+        val_dict = json.load(f_x, object_hook=dict)
+        f_x.close()
+        avg_dict[i] = calc_avg_val(val_dict, month_index)
+    plt.figure(figsize=(12, 4))
+    plt.rcParams['font.sans-serif'] = ['SimHei']
+    plt.plot(avg_dict.keys(), avg_dict.values(), 'ro-', label='链路利用率函数平均值', linewidth=1)
+    plt.title("%s月升级节点利用率函数变化折线图" % month_index)
+    plt.xlabel("升级节点数量")
+    plt.ylabel("链路利用率函数平均值")
+    plt.xlim((0, 12))
+    plt.legend(fontsize=10)
+    plt.show()
+
+
+def plot_avg_variance_val(month_index):
+    avg_dict = {}
+    json_file_origin = "variance/add_weight/abilene_TM_2004_%s.json" % month_index
+    f_0 = open(json_file_origin, 'r', encoding="utf-8")
+    origin_result_dict = json.load(f_0, object_hook=dict)
+    avg_dict[0] = calc_avg_val(origin_result_dict, month_index)
+    for i in range(1, 13):
+        file_name = "variance/upgrade_strategy_%d_node%s/abilene_TM_2004_%s.json" % (
+        i, '' if i == 1 else 's', month_index)
+        f_x = open(file_name, 'r', encoding='utf-8')
+        val_dict = json.load(f_x, object_hook=dict)
+        f_x.close()
+        avg_dict[i] = calc_avg_val(val_dict, month_index)
+    plt.figure(figsize=(12, 4))
+    plt.rcParams['font.sans-serif'] = ['SimHei']
+    plt.plot(avg_dict.keys(), avg_dict.values(), 'ro-', label='链路剩余带宽均方差平均值', linewidth=1)
+    plt.title("%s月升级节点剩余带宽均方差变化折线图" % month_index)
+    plt.xlabel("升级节点数量")
+    plt.ylabel("剩余带宽均方差平均值")
+    # plt.ylim((0.8 * 1e7, 1e7))
+    plt.xlim((0, 12))
+    plt.legend(fontsize=10)
+    plt.show()
+
+
+def calc_avg_val(val_dict, month_index, threshold=0.4):
+    json_file_origin = "utilization/add_weight/abilene_TM_2004_%s.json" % month_index
+    f_0 = open(json_file_origin, 'r', encoding="utf-8")
+    origin_result_dict = json.load(f_0, object_hook=dict)
+    f_0.close()
+    vals = [val_dict[i] for i in val_dict.keys() if origin_result_dict[i] >= threshold]
+    return (sum(vals)) / len(vals)
+
+
 if __name__ == "__main__":
     # plot_utilization_compared_result('05', 3, 0.15)
     # plot_utilization_func_val_compared_result('05', 3, 0.15)
     # plot_variance_compared_result('05', 3, 0.15)
-    plot_optimized_split_utilization('05', 3, 0.15)
-    plot_optimized_split_utilization_func_val('05', 3, 0.15)
-    plot_optimized_split_variance('05', 3, 0.15)
+    # plot_optimized_split_utilization('05', 3, 0.15)
+    # plot_optimized_split_utilization_func_val('05', 3, 0.15)
+    # plot_optimized_split_variance('05', 3, 0.15)
+    plot_upgrade_strategy_utilization_avg('05')
+    plot_avg_utilization_func_val('05')
+    plot_avg_variance_val('05')
 
 
 
