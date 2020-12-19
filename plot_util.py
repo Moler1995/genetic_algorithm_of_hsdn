@@ -360,6 +360,7 @@ def plot_upgrade_strategy_utilization_avg(month_index):
     # plt.ylim((0.4, 0.6))
     plt.xlim((0, 12))
     plt.legend(fontsize=10)
+    plt.savefig("./charts/compare/utilization/avg_everytime_upgraded/%s.png" % month_index)
     plt.show()
 
 
@@ -384,6 +385,7 @@ def plot_avg_utilization_func_val(month_index):
     plt.ylabel("链路利用率函数平均值")
     plt.xlim((0, 12))
     plt.legend(fontsize=10)
+    plt.savefig("./charts/compare/utilization_func_val/avg_everytime_upgraded/%s.png" % month_index)
     plt.show()
 
 
@@ -409,6 +411,7 @@ def plot_avg_variance_val(month_index):
     # plt.ylim((0.8 * 1e7, 1e7))
     plt.xlim((0, 12))
     plt.legend(fontsize=10)
+    plt.savefig("./charts/compare/variance/avg_everytime_upgraded/%s.png" % month_index)
     plt.show()
 
 
