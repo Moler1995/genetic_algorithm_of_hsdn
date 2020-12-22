@@ -23,6 +23,8 @@ def execute(dag, topological_sorted_nodes, traffics, bandwidth, sdn_nodes, scene
     NIND = 100
     Field = ea.crtfld(Encoding, problem.varTypes, problem.ranges, problem.borders)
     population = ea.Population(Encoding, Field, NIND)
+    # [1] R. Tanabe and A. Fukunaga, "Reevaluating exponential crossover in differential evolution,"
+    # in Anonymous Cham: Springer International Publishing, pp. 201-210.
     myAlgorithm = ea.moea_NSGA3_DE_templet(problem, population)
     myAlgorithm.mutOper.F = 0.74
     myAlgorithm.recOper.XOVR = 0.65
