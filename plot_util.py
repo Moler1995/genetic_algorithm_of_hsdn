@@ -384,6 +384,8 @@ def plot_avg_utilization_func_val(month_index):
     plt.xlabel("升级节点数量")
     plt.ylabel("链路利用率函数平均值")
     plt.xlim((0, 12))
+    # 5月
+    # plt.ylim((3 * 1e7, 4 * 1e7))
     plt.legend(fontsize=10)
     plt.savefig("./charts/compare/utilization_func_val/avg_everytime_upgraded/%s.png" % month_index)
     plt.show()
@@ -431,9 +433,9 @@ if __name__ == "__main__":
     # plot_optimized_split_utilization('05', 3, 0.15)
     # plot_optimized_split_utilization_func_val('05', 3, 0.15)
     # plot_optimized_split_variance('05', 3, 0.15)
-    plot_upgrade_strategy_utilization_avg('05')
+    # plot_upgrade_strategy_utilization_avg('05')
     plot_avg_utilization_func_val('05')
-    plot_avg_variance_val('05')
+    # plot_avg_variance_val('05')
 
 
 
