@@ -136,7 +136,7 @@ def plot_utilization_func_val_compared_result(month_index, optimize_result_count
         plt.plot(x_data, y1_data, 'r', label='原始利用率函数值', linewidth=0.6)
     for i in range(optimize_result_count):
         label_name = "升级%d个节点" % (i + 1)
-        plt.plot(x_data, y_optimized_data_dict[i], color_warehouse[i], label=label_name, linewidth=0.6)
+        plt.plot(x_data, y_optimized_data_dict[i], color_warehouse[i], label=label_name, linewidth=0.8)
     plt.xticks([])
     plt.title("%s月链路利用率函数值变化折线图" % month_index)
     plt.xlabel("时间")
@@ -203,7 +203,7 @@ def plot_variance_compared_result(month_index, optimize_result_count, threshold=
     plt.plot(x_data, y1_data, 'r', label='原始剩余带宽标准差', linewidth=0.6)
     for i in range(optimize_result_count):
         label_name = "升级%d个节点" % (i + 1)
-        plt.plot(x_data, y_optimized_data_dict[i], color_warehouse[i], label=label_name, linewidth=0.6)
+        plt.plot(x_data, y_optimized_data_dict[i], color_warehouse[i], label=label_name, linewidth=0.8)
     plt.xticks([])
     plt.title("%s月链路剩余带宽标准差变化折线图" % month_index)
     plt.xlabel("时间")
@@ -252,7 +252,7 @@ def plot_optimized_split_utilization(month_index, node_upgraded, threshold=0.0):
     plt.ylim((0, 1))
     plt.legend(fontsize=10)
     plt.savefig("./charts/compare/utilization/compare_%s_upgrade_split_optimized/%s.png" % (node_upgraded, month_index))
-    # plt.show()
+    plt.show()
 
 
 def plot_optimized_split_utilization_func_val(month_index, node_upgraded, threshold=0.0):
@@ -294,7 +294,7 @@ def plot_optimized_split_utilization_func_val(month_index, node_upgraded, thresh
     # plt.ylim((0, 1))
     plt.legend(fontsize=10)
     plt.savefig("./charts/compare/utilization_func_val/compare_%s_upgrade_split_optimized/%s.png" % (node_upgraded, month_index))
-    # plt.show()
+    plt.show()
 
 
 def plot_optimized_split_variance(month_index, node_upgraded, threshold=0.0):
@@ -327,8 +327,8 @@ def plot_optimized_split_variance(month_index, node_upgraded, threshold=0.0):
     plt.figure(figsize=(12, 4))
     plt.rcParams['font.sans-serif'] = ['SimHei']
     # plt.plot(x_data, y0_data, 'r', label='原始利用率', linewidth=0.6)
-    plt.plot(x_data, y1_data, 'b', label='升级%d节点后' % node_upgraded, linewidth=0.6)
-    plt.plot(x_data, y2_data, 'g', label='优化分流后', linewidth=0.6)
+    plt.plot(x_data, y1_data, 'b', label='升级%d节点后' % node_upgraded, linewidth=0.8)
+    plt.plot(x_data, y2_data, 'g', label='优化分流后', linewidth=0.8)
     plt.xticks([])
     plt.title("%s月链路剩余带宽方差变化折线图" % month_index)
     plt.xlabel("时间")
@@ -336,7 +336,7 @@ def plot_optimized_split_variance(month_index, node_upgraded, threshold=0.0):
     # plt.ylim((0, 1))
     plt.legend(fontsize=10)
     plt.savefig("./charts/compare/variance/compare_%s_upgrade_split_optimized/%s.png" % (node_upgraded, month_index))
-    # plt.show()
+    plt.show()
 
 
 def plot_upgrade_strategy_utilization_avg(month_index):
@@ -385,7 +385,7 @@ def plot_avg_utilization_func_val(month_index):
     plt.ylabel("链路利用率函数平均值")
     plt.xlim((0, 12))
     # 5月
-    # plt.ylim((3 * 1e7, 4 * 1e7))
+    plt.ylim((4.5 * 1e7, 5 * 1e7))
     plt.legend(fontsize=10)
     plt.savefig("./charts/compare/utilization_func_val/avg_everytime_upgraded/%s.png" % month_index)
     plt.show()
@@ -427,15 +427,15 @@ def calc_avg_val(val_dict, month_index, threshold=0.4):
 
 
 if __name__ == "__main__":
-    # plot_utilization_compared_result('05', 3, 0.15)
-    # plot_utilization_func_val_compared_result('05', 3, 0.15)
-    # plot_variance_compared_result('05', 3, 0.15)
-    # plot_optimized_split_utilization('05', 3, 0.15)
-    # plot_optimized_split_utilization_func_val('05', 3, 0.15)
-    # plot_optimized_split_variance('05', 3, 0.15)
+    # plot_utilization_compared_result('08', 3, 0.15)
+    # plot_utilization_func_val_compared_result('08', 3, 0.15)
+    # plot_variance_compared_result('08', 3, 0.15)
+    # plot_optimized_split_utilization('08', 3, 0.15)
+    # plot_optimized_split_utilization_func_val('08', 3, 0.15)
+    plot_optimized_split_variance('08', 3, 0.15)
     # plot_upgrade_strategy_utilization_avg('05')
-    plot_avg_utilization_func_val('05')
-    # plot_avg_variance_val('05')
+    # plot_avg_utilization_func_val('08')
+    # plot_avg_variance_val('06')
 
 
 

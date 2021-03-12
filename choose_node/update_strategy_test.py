@@ -119,7 +119,6 @@ if __name__ == "__main__":
         bandwidth[9][10], bandwidth[10][11] = [9920000] * 14
     bandwidth[3][10] = 2480000
     sdn_count = 2
-    # [11, 10, 9, 6, 3, 8, 1, 7, 5, 4, 0, 2]
     # sdn_node_permutation:  [10 11  9  3  6  2  8  1  5  4  0  7]
     sdn_nodes = [10, 11]
     calc_normal_utilization(graph, sdn_count, sdn_nodes, bandwidth)  # 计算所有流量的链路利用率
